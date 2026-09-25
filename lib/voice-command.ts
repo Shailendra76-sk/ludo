@@ -10,7 +10,7 @@ const DIGITS: Record<string, number> = {
   "छह": 6, "छ:": 6, "छः": 6, "छे": 6, "छः": 6,
   "एक": 1, "दो": 2, "तीन": 3, "चार": 4, "पाँच": 5, "पांच": 5,
 };
-const TOKEN_WORDS = ["token", "goti", "gotि", "गोटी", "गोटि", "piece", "pawn", "move", "चलाओ", "चलो", "चल", "move"];
+const TOKEN_WORDS = ["token", "goti", "गोटी", "गोटि", "piece", "pawn", "move", "चलाओ", "चलो", "चल", "गोटी"];
 
 function normalize(input: string): string {
   return input
@@ -30,7 +30,9 @@ export function parseVoiceCommand(input: string, state: GameState): VoiceIntent 
   if (!text) return null;
 
   const numbers = numbersIn(text);
-  const hasRollWord = /\b(roll|dice|throw|फेंक|पासा|पासे|डाइस|घुमाओ|roll\s*dice)\b/u.test(text);
+  const hasRollWord =
+    /\b(roll|dice|throw)\b/u.test(text) ||
+    ["फेंक", "पासा", "पासे", "डाइस", "घुमाओ"].some((word) => text.includes(word));
   const mentionsMove = TOKEN_WORDS.some((word) => text.includes(word));
 
   if (state.dice !== null) {
