@@ -91,9 +91,9 @@ voiceDescribe("classic start positions", () => {
       players.map((player) => [player.color, globalTrackIndex(player, 1)]),
     );
     voiceExpect(starts.red).toBe(0);
-    voiceExpect(starts.blue).toBe(13);
+    voiceExpect(starts.green).toBe(13);
     voiceExpect(starts.yellow).toBe(26);
-    voiceExpect(starts.green).toBe(39);
+    voiceExpect(starts.blue).toBe(39);
     voiceExpect(START_OFFSETS.red).toBe(0);
   });
 });
@@ -167,7 +167,6 @@ describe("Classic Ludo movement rules", () => {
 
   it("does not capture on a safe square", () => {
     const state = createInitialState(2);
-    state.players[0].tokens[0].steps = 0;
     state.players[0].tokens[0].steps = 8;
     state.players[1].tokens[0].steps = 48;
     state.dice = 1;
