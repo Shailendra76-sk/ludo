@@ -16,7 +16,7 @@ describe("Ludo engine foundation", () => {
 
   it("allows a token to leave base on six", () => {
     let state = applyDice(createInitialState(4), 6);
-    expect(getLegalMoves(state)).toEqual([0]);
+    expect(getLegalMoves(state)).toEqual([0, 1, 2, 3]);
     state = moveToken(state, 0);
     expect(state.players[0].tokens[0].steps).toBe(1);
   });
