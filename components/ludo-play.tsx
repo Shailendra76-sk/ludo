@@ -3,7 +3,7 @@
 import { useState } from "react";
 import LudoBoard from "@/components/ludo-board";
 import { applyDice, createInitialState, getCurrentPlayer, getLegalMoves, globalTrackIndex, moveToken } from "@/game-engine/ludo-engine";
-import { COLOR_NAMES } from "@/game-engine/constants";
+import { COLOR_NAMES, FINISH_STEPS } from "@/game-engine/constants";
 import { secureLocalDice } from "@/lib/random";
 import type { GameState, PlayerColor } from "@/lib/types";
 
