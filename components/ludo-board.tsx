@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { CENTER, HOME_LANES, START_POSITIONS, TRACK } from "@/game-engine/board";
+import { CENTER, HOME_LANES, START_POSITIONS, TRACK, getRoutePosition } from "@/game-engine/board";
 import { FINISH_STEPS, SAFE_TRACK_INDEXES } from "@/game-engine/constants";
-import { getTokenBoardPosition, globalTrackIndex } from "@/game-engine/ludo-engine";
+import { getTokenBoardPosition } from "@/game-engine/ludo-engine";
 import type { GameState, PlayerColor } from "@/lib/types";
 
 type Palette = {
