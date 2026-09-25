@@ -79,3 +79,21 @@ voiceDescribe("voice command parser", () => {
     voiceExpect(parseVoiceCommand("hello there", base())).toBeNull();
   });
 });
+
+
+import { globalTrackIndex } from "@/game-engine/ludo-engine";
+import { START_OFFSETS } from "@/game-engine/constants";
+
+voiceDescribe("classic start positions", () => {
+  voiceIt("maps each color to the track start beside its own home", () => {
+    const players = createInitialState(4).players;
+    const starts = Object.fromEntries(
+      players.map((player) => [player.color, globalTrackIndex(player, 1)]),
+    );
+    voiceExpect(starts.red).toBe(0);
+    voiceExpect(starts.blue).toBe(13);
+    voiceExpect(starts.yellow).toBe(26);
+    voiceExpect(starts.green).toBe(39);
+    voiceExpect(START_OFFSETS.red).toBe(0);
+  });
+});
