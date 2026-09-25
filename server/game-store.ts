@@ -69,8 +69,17 @@ export function validateConfig(value: unknown): GameConfig {
   if (input.playerCount !== 2 && input.playerCount !== 3 && input.playerCount !== 4) {
     throw new Error("playerCount must be 2, 3 or 4.");
   }
+  const mode = input.mode === "ai" ? "ai" : "classic";
+  const botDifficulty =
+    input.botDifficulty === "easy" ||
+    input.botDifficulty === "hard" ||
+    input.botDifficulty === "expert"
+      ? input.botDifficulty
+      : "medium";
   return {
     playerCount: input.playerCount,
+    mode,
+    botDifficulty,
     turnTimeSeconds: Math.max(5, Math.min(60, Number(input.turnTimeSeconds ?? 15))),
     requireSixToStart: input.requireSixToStart !== false,
     rollAgainOnSix: input.rollAgainOnSix !== false,
