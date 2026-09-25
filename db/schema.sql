@@ -277,3 +277,6 @@ INSERT INTO app_settings(key,value) VALUES
   ('branding', '{"appName":"Ludo Play","logoUrl":null,"faviconUrl":null,"welcomeMessage":"Welcome to Ludo Play"}'::jsonb),
   ('game', '{"turnTimeSeconds":15,"requireSixToStart":true,"rollAgainOnSix":true}'::jsonb)
 ON CONFLICT (key) DO NOTHING;
+
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'player';
