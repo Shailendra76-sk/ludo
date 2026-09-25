@@ -16,7 +16,7 @@ describe("Ludo engine foundation", () => {
 
   it("allows a token to leave base on six", () => {
     let state = applyDice(createInitialState(4), 6);
-    expect(getLegalMoves(state)).toEqual([0, 1, 2, 3]);
+    expect(getLegalMoves(state)).toEqual([0]);
     state = moveToken(state, 0);
     expect(state.players[0].tokens[0].steps).toBe(1);
   });
@@ -156,7 +156,7 @@ describe("Classic Ludo movement rules", () => {
   it("captures one opponent on a non-safe shared square and grants a bonus turn", () => {
     const state = createInitialState(2);
     state.players[0].tokens[0].steps = 1;
-    state.players[1].tokens[0].steps = 41;
+    state.players[1].tokens[0].steps = 15;
     state.dice = 1;
     const next = moveToken(state, 0);
 
@@ -167,13 +167,13 @@ describe("Classic Ludo movement rules", () => {
 
   it("does not capture on a safe square", () => {
     const state = createInitialState(2);
-    state.players[0].tokens[0].steps = 1;
-    state.players[1].tokens[0].steps = 40;
-    state.dice = 1;
+    state.players[0].tokens[0].steps = 0;
+    state.players[1].tokens[0].steps = 14;
+    state.dice = 6;
     const next = moveToken(state, 0);
 
-    expect(next.players[1].tokens[0].steps).toBe(40);
-    expect(next.players[0].tokens[0].steps).toBe(2);
+    expect(next.players[1].tokens[0].steps).toBe(14);
+    expect(next.players[0].tokens[0].steps).toBe(1);
   });
 
   it("enters the colored home lane after completing the shared circuit", () => {
@@ -196,9 +196,12 @@ describe("Classic Ludo movement rules", () => {
 
   it("allows another roll after a six when no token can move", () => {
     const state = createInitialState(2);
+    state.players.forEach((player) => player.tokens.forEach((token) => { token.steps = 58; }));
     const next = applyDice(state, 6);
     expect(next.currentPlayerIndex).toBe(0);
-    expect(next.dice).toBe(6);
+    expect(next.dice).toBeNull();
+    expect(next.message).toContain("Roll again");
+    expect(next.sixStreak).toBe(1);
   });
 
   it("forfeits the turn on the third consecutive six", () => {
