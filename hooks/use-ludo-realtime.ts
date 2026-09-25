@@ -53,7 +53,22 @@ export function useLudoRealtime({ roomId, onEvent }: Props) {
 
         socket.on("connect", () => setStatus("connected"));
         socket.on("disconnect", () => setStatus("connecting"));
-        socket.on("connect_error", () => setStatus("error"));
+        socket.on("connect_error", async () => {
+          setStatus("error");
+          try {
+            const response = await fetch("/api/realtime/ticket", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ roomId }),
+            });
+            const body = await response.json().catch(() => ({}));
+            if (!response.ok || !body.ticket || !socket) return;
+            socket.auth = { ticket: body.ticket };
+            socket.connect();
+          } catch {
+            // The normal Socket.IO reconnect loop remains active.
+          }
+        });
         socket.on("realtime:event", (event) => callback.current?.(event));
       })
       .catch(() => {
