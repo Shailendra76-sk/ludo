@@ -50,3 +50,32 @@ describe("Bot decision foundation", () => {
     expect(chooseBotToken(state)).toBeNull();
   });
 });
+
+
+import { describe as voiceDescribe, expect as voiceExpect, it as voiceIt } from "vitest";
+import { parseVoiceCommand } from "@/lib/voice-command";
+
+voiceDescribe("voice command parser", () => {
+  const base = () => createInitialState(2, {}, { userId: "u1", name: "Player" });
+  voiceIt("maps spoken six to a roll intent without controlling the result", () => {
+    const intent = parseVoiceCommand("छे", base());
+    voiceExpect(intent).toEqual({ type: "roll", spokenValue: 6 });
+  });
+  voiceIt("maps roll dice to a roll intent", () => {
+    const intent = parseVoiceCommand("roll dice", base());
+    voiceExpect(intent?.type).toBe("roll");
+  });
+  voiceIt("maps token two when a dice result exists", () => {
+    const state = { ...base(), dice: 4 };
+    const intent = parseVoiceCommand("token 2", state);
+    voiceExpect(intent).toEqual({ type: "move", tokenId: 1 });
+  });
+  voiceIt("maps Hindi token command", () => {
+    const state = { ...base(), dice: 3 };
+    const intent = parseVoiceCommand("गोटी 4 चलाओ", state);
+    voiceExpect(intent).toEqual({ type: "move", tokenId: 3 });
+  });
+  voiceIt("rejects ambiguous commands", () => {
+    voiceExpect(parseVoiceCommand("hello there", base())).toBeNull();
+  });
+});
