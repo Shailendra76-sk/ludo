@@ -12,7 +12,10 @@ export async function persistNewGame(state: GameState) {
 
 export async function readGame(gameId: string) {
   const result = await getDb().query(
-    "SELECT id,status,config,state,state_version,updated_at FROM games WHERE id=$1 LIMIT 1",
+    "SELECT g.id,g.status,g.config,g.state,g.state_version,g.updated_at,r.id AS room_id
+     FROM games g
+     LEFT JOIN rooms r ON r.game_id = g.id
+     WHERE g.id=$1 LIMIT 1",
     [gameId],
   );
   return result.rows[0] ?? null;
