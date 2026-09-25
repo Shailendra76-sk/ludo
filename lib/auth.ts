@@ -53,8 +53,8 @@ export async function authenticateUser(email: string, password: string) {
   const rawToken = randomBytes(32).toString("base64url");
   const tokenHash = hashValue(rawToken);
   await getDb().query(
-    "INSERT INTO sessions(id,user_id,expires_at) VALUES($1,$2,now()+($3 || ' days')::interval)",
-    [tokenHash, user.id, SESSION_DAYS],
+    "INSERT INTO sessions(user_id,token_hash,expires_at) VALUES($1,$2,now()+($3 || ' days')::interval)",
+    [user.id, tokenHash, SESSION_DAYS],
   );
 
   const store = await cookies();
@@ -75,7 +75,7 @@ export async function getCurrentUser() {
   if (!rawToken) return null;
 
   const result = await getDb().query(
-    "SELECT u.id,u.username,u.email FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1 AND s.expires_at>now() LIMIT 1",
+    "SELECT u.id,u.username,u.email FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() LIMIT 1",
     [hashValue(rawToken)],
   );
   return result.rows[0] ?? null;
@@ -84,6 +84,6 @@ export async function getCurrentUser() {
 export async function logoutUser() {
   const store = await cookies();
   const rawToken = store.get(SESSION_COOKIE)?.value;
-  if (rawToken) await getDb().query("DELETE FROM sessions WHERE id=$1", [hashValue(rawToken)]);
+  if (rawToken) await getDb().query("DELETE FROM sessions WHERE token_hash=$1", [hashValue(rawToken)]);
   store.delete(SESSION_COOKIE);
 }
