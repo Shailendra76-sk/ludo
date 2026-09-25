@@ -28,6 +28,9 @@ export type GameConfig = {
   turnTimeSeconds: number;
   requireSixToStart: boolean;
   rollAgainOnSix: boolean;
+  rollAgainOnCapture: boolean;
+  rollAgainOnHome: boolean;
+  threeSixPenalty: boolean;
 };
 
 export type GameState = {
@@ -41,6 +44,7 @@ export type GameState = {
   winnerId: number | null;
   message: string;
   stateVersion: number;
+  sixStreak: number;
 };
 
 
