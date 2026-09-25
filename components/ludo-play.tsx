@@ -67,7 +67,7 @@ export default function LudoPlay() {
 
         <section className="grid gap-4 lg:grid-cols-[1fr_340px]">
           <div className="rounded-3xl border border-white/10 bg-white/[.05] p-2 sm:p-4">
-            <div className="mx-auto grid aspect-square w-full max-w-[760px] grid-cols-15 grid-rows-15 overflow-hidden rounded-2xl border-4 border-slate-900/30 bg-slate-200 shadow-2xl">
+            <div className="mx-auto grid aspect-square w-full max-w-[760px] grid-cols-[repeat(15,minmax(0,1fr))] grid-rows-[repeat(15,minmax(0,1fr))] overflow-hidden rounded-2xl border-4 border-slate-900/30 bg-slate-200 shadow-2xl">
               {Array.from({ length: cellCount }, (_, index) => {
                 const x = index % 15;
                 const y = Math.floor(index / 15);
