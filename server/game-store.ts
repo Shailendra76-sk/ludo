@@ -1,6 +1,7 @@
 import { getDb } from "@/db/client";
 import type { GameConfig, GameState } from "@/lib/types";
 import { publishRealtimeEvent } from "@/server/realtime-pubsub";
+import { recordFinishedGame } from "@/server/stats-store";
 
 export async function persistNewGame(state: GameState) {
   await getDb().query(
@@ -43,7 +44,7 @@ export async function transactGame<T>(
       return (existing.rows[0].payload as { state: GameState }).state;
     }
 
-    const locked = await client.query("SELECT state FROM games WHERE id=$1 FOR UPDATE", [gameId]);
+    const locked = await client.query("SELECT state,created_at FROM games WHERE id=$1 FOR UPDATE", [gameId]);
     if (!locked.rowCount) throw new Error("Game not found.");
 
     const current = locked.rows[0].state as GameState;
@@ -53,6 +54,15 @@ export async function transactGame<T>(
       "UPDATE games SET status=$2,state=$3,state_version=$4,updated_at=now() WHERE id=$1",
       [gameId, result.state.status, JSON.stringify(result.state), result.state.stateVersion],
     );
+    if (result.state.status === "finished") {
+      await recordFinishedGame(
+        result.state,
+        new Date(locked.rows[0].created_at),
+        new Date(),
+        client,
+      );
+    }
+
     await client.query(
       "INSERT INTO game_events(game_id,action_id,event_type,actor_user_id,payload) VALUES($1,$2,$3,$4,$5)",
       [gameId, actionId, eventType, actorUserId, JSON.stringify({ ...(result.payload ?? {}), state: result.state })],
