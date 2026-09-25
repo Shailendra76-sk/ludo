@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { CENTER, HOME_LANES, TRACK, globalTrackIndex as _unused } from "@/game-engine/board";
+import { CENTER, HOME_LANES, TRACK } from "@/game-engine/board";
 import { FINISH_STEPS } from "@/game-engine/constants";
 import { globalTrackIndex } from "@/game-engine/ludo-engine";
 import type { GameState, PlayerColor } from "@/lib/types";
