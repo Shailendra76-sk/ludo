@@ -140,16 +140,15 @@ export default function LudoBoard({
                   background: home ? PALETTE[home].home : lane ? PALETTE[lane].homeSoft : undefined,
                 }}
               >
-                {home && x === HOME_ZONES[home].x0 + 2 && y === HOME_ZONES[home].y0 + 2 && (
+                {home && x === HOME_ZONES[home].x0 + 1 && y === HOME_ZONES[home].y0 + 1 && (
                   <div
-                    className="absolute inset-[7%] rounded-[5px] border-2 border-white bg-white shadow-inner"
-                    style={{ boxShadow: `inset 0 0 0 999px ${PALETTE[home].homeSoft}` }}
+                    className="pointer-events-none absolute left-[3%] top-[3%] z-[1] h-[394%] w-[394%] rounded-[4px] border border-slate-200 bg-white shadow-inner"
                   />
                 )}
 
                 {home && isBaseSpot && (
                   <div
-                    className="absolute h-[70%] w-[70%] rounded-full border-2 bg-white shadow-sm"
+                    className="pointer-events-none absolute z-[2] h-[58%] w-[58%] rounded-full border-2 bg-white shadow-sm"
                     style={{ borderColor: PALETTE[home].home }}
                   />
                 )}
