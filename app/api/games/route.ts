@@ -13,8 +13,7 @@ export async function POST(request: Request) {
   try {
     const body = requireJsonObject(await request.json());
     const config = validateConfig(body.config ?? { playerCount: 4 });
-    const state = createInitialState(config.playerCount, config);
-    state.players[0] = { ...state.players[0], name: user.username };
+    const state = createInitialState(config.playerCount, config, { userId: user.id, name: user.username });
     await persistNewGame(state);
     return NextResponse.json({ game: state }, { status: 201 });
   } catch (error) {
