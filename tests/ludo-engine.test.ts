@@ -112,7 +112,7 @@ voiceDescribe("classic route geometry", () => {
     voiceExpect(getTokenBoardPosition(red, 1)).toEqual({ x: 1, y: 6 });
     voiceExpect(getTokenBoardPosition(red, 2)).toEqual({ x: 2, y: 6 });
     voiceExpect(getTokenBoardPosition(red, 6)).toEqual({ x: 6, y: 5 });
-    voiceExpect(getTokenBoardPosition(red, 11)).toEqual({ x: 0, y: 6 });
+    voiceExpect(getTokenBoardPosition(red, 11)).toEqual({ x: 6, y: 0 });
   });
 
   voiceIt("places each color start beside its own corner", () => {
@@ -137,7 +137,7 @@ describe("Classic Ludo movement rules", () => {
     expect(getTokenBoardPosition(red, 1)).toEqual({ x: 1, y: 6 });
     expect(getTokenBoardPosition(red, 2)).toEqual({ x: 2, y: 6 });
     expect(getTokenBoardPosition(red, 6)).toEqual({ x: 6, y: 5 });
-    expect(getTokenBoardPosition(red, 12)).toEqual({ x: 0, y: 7 });
+    expect(getTokenBoardPosition(red, 12)).toEqual({ x: 7, y: 0 });
   });
 
   it("starts every color at its own home-adjacent entry square", () => {
