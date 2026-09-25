@@ -48,4 +48,14 @@ npm run dev
 npm test
 ~~~
 
-Phase 1 is intentionally focused on the game foundation. Voice and AI-command control are reserved for a later phase as requested.
+## Phase 3 — AI bots
+
+- AI game mode
+- Easy / Medium / Hard / Expert bot difficulty
+- Server-side bot decision engine
+- Same legal-move engine for bots and humans
+- Transactional bot-turn endpoint
+
+See docs/PHASE-3.md.
+
+Voice-command control remains intentionally deferred to a later phase as requested.
