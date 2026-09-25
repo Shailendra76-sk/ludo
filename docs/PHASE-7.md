@@ -8,6 +8,7 @@
 - Friend list with status.
 - Remove friend.
 - Block player, including relationship cleanup and pending-request cancellation.
+- Room invitations to friends with persistent invitation notifications.
 - Persistent game-room chat with member-only access.
 - Chat history endpoint.
 - Chat message realtime delivery over the existing room WebSocket channel.
@@ -16,6 +17,7 @@
 - Unread notification count.
 - Mark-one and mark-all notification read actions.
 - Social dashboard at /social.
+- Chat panel embedded in the online game screen.
 
 ## Security
 
