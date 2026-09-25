@@ -103,3 +103,24 @@ export type Notification = {
   readAt: string | null;
   createdAt: string;
 };
+
+
+export type MatchmakingStatus = "queued" | "matched";
+
+export type MatchmakingTicket = {
+  id: string;
+  userId: string;
+  playerCount: 2 | 3 | 4;
+  status: MatchmakingStatus;
+  createdAt: string;
+};
+
+export type ReplayEvent = {
+  id: number;
+  actionId: string;
+  eventType: string;
+  actorUserId: string | null;
+  createdAt: string;
+  state: GameState | null;
+  previousState: GameState | null;
+};
