@@ -1,7 +1,7 @@
 import type { PlayerColor } from "@/lib/types";
 
 export const TOKENS_PER_PLAYER = 4;
-export const TRACK_LENGTH = 51;
+export const TRACK_LENGTH = 52;
 export const FINISH_STEPS = 58;
 export const ENTRY_ROLL = 6;
 
