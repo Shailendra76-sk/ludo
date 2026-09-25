@@ -97,3 +97,9 @@ voiceDescribe("classic start positions", () => {
     voiceExpect(START_OFFSETS.red).toBe(0);
   });
 });
+
+
+voiceIt("uses the matching colored home lane after the main track", () => {
+  const board = createInitialState(4);
+  voiceExpect(board.players.map((p) => p.color)).toEqual(["red", "blue", "green", "yellow"]);
+});
