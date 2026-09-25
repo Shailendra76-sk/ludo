@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   username TEXT NOT NULL UNIQUE CHECK (char_length(username) BETWEEN 3 AND 32),
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'player' CHECK (role IN ('player','admin')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -234,3 +235,45 @@ CREATE TABLE IF NOT EXISTS matchmaking_queue (
 
 CREATE INDEX IF NOT EXISTS matchmaking_queue_group_idx
   ON matchmaking_queue(player_count,created_at);
+
+
+CREATE TABLE IF NOT EXISTS admin_audit_logs (
+  id BIGSERIAL PRIMARY KEY,
+  admin_user_id UUID NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  target_type TEXT,
+  target_id TEXT,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS admin_audit_logs_created_idx ON admin_audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS admin_audit_logs_admin_idx ON admin_audit_logs(admin_user_id,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS reports (
+  id BIGSERIAL PRIMARY KEY,
+  reporter_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  room_id UUID REFERENCES rooms(id) ON DELETE SET NULL,
+  game_id UUID REFERENCES games(id) ON DELETE SET NULL,
+  reason TEXT NOT NULL CHECK (char_length(reason) BETWEEN 1 AND 200),
+  details TEXT NOT NULL DEFAULT '' CHECK (char_length(details) <= 1000),
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','reviewing','resolved','dismissed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS reports_status_idx ON reports(status,created_at DESC);
+CREATE INDEX IF NOT EXISTS reports_target_user_idx ON reports(target_user_id);
+
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO app_settings(key,value) VALUES
+  ('branding', '{"appName":"Ludo Play","logoUrl":null,"faviconUrl":null,"welcomeMessage":"Welcome to Ludo Play"}'::jsonb),
+  ('game', '{"turnTimeSeconds":15,"requireSixToStart":true,"rollAgainOnSix":true}'::jsonb)
+ON CONFLICT (key) DO NOTHING;
