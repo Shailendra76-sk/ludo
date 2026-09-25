@@ -122,9 +122,9 @@ voiceDescribe("classic route geometry", () => {
     );
     voiceExpect(positions).toEqual({
       red: { x: 6, y: 1 },
-      green: { x: 13, y: 6 },
+      green: { x: 1, y: 8 },
       yellow: { x: 8, y: 13 },
-      blue: { x: 1, y: 8 },
+      blue: { x: 13, y: 6 },
     });
   });
 });
@@ -147,16 +147,16 @@ describe("Classic Ludo movement rules", () => {
     );
     expect(positions).toEqual({
       red: { x: 6, y: 1 },
-      green: { x: 13, y: 6 },
+      green: { x: 1, y: 8 },
       yellow: { x: 8, y: 13 },
-      blue: { x: 1, y: 8 },
+      blue: { x: 13, y: 6 },
     });
   });
 
   it("captures one opponent on a non-safe shared square and grants a bonus turn", () => {
     const state = createInitialState(2);
     state.players[0].tokens[0].steps = 1;
-    state.players[1].tokens[0].steps = 15;
+    state.players[1].tokens[0].steps = 41;
     state.dice = 1;
     const next = moveToken(state, 0);
 
@@ -168,20 +168,21 @@ describe("Classic Ludo movement rules", () => {
   it("does not capture on a safe square", () => {
     const state = createInitialState(2);
     state.players[0].tokens[0].steps = 0;
-    state.players[1].tokens[0].steps = 14;
-    state.dice = 6;
+    state.players[0].tokens[0].steps = 8;
+    state.players[1].tokens[0].steps = 48;
+    state.dice = 1;
     const next = moveToken(state, 0);
 
-    expect(next.players[1].tokens[0].steps).toBe(14);
-    expect(next.players[0].tokens[0].steps).toBe(1);
+    expect(next.players[1].tokens[0].steps).toBe(48);
+    expect(next.players[0].tokens[0].steps).toBe(9);
   });
 
   it("enters the colored home lane after completing the shared circuit", () => {
     const state = createInitialState(4);
     const red = state.players[0];
-    expect(getTokenBoardPosition(red, 51)).toEqual({ x: 7, y: 0 });
-    expect(getTokenBoardPosition(red, 52)).toEqual({ x: 7, y: 1 });
-    expect(getTokenBoardPosition(red, 57)).toEqual({ x: 7, y: 6 });
+    expect(getTokenBoardPosition(red, 52)).toEqual({ x: 7, y: 0 });
+    expect(getTokenBoardPosition(red, 53)).toEqual({ x: 7, y: 1 });
+    expect(getTokenBoardPosition(red, 57)).toEqual({ x: 7, y: 5 });
     expect(getTokenBoardPosition(red, 58)).toEqual({ x: 7, y: 7 });
   });
 
