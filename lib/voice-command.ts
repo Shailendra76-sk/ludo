@@ -7,7 +7,7 @@ export type VoiceIntent =
 const DIGITS: Record<string, number> = {
   "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6,
   zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
-  "छह": 6, "छ:": 6, "छः": 6, "छे": 6, "छः": 6,
+  "छह": 6, "छ:": 6, "छः": 6, "छ": 6, "छे": 6,
   "एक": 1, "दो": 2, "तीन": 3, "चार": 4, "पाँच": 5, "पांच": 5,
 };
 const TOKEN_WORDS = ["token", "goti", "गोटी", "गोटि", "piece", "pawn", "move", "चलाओ", "चलो", "चल", "गोटी"];
