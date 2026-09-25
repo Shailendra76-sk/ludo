@@ -42,6 +42,12 @@ Microphone access is requested only after the player explicitly activates voice 
 - Persisted VOICE_COMMAND events participate in the normal replay/event stream.
 - The server ignores any client-provided dice value.
 
+## Classic Ludo rule review
+
+The board was reworked around a fixed per-color route instead of a single offset formula. Red begins at the top-left-adjacent start, then travels clockwise; the other three routes are 90-degree rotations. This keeps the token's visual position, movement direction, home lane, safe cells, capture checks, bots, and replay state on the same coordinate model.
+
+The rule review follows common Ludo references: leave base on six, move clockwise, use the color-specific home column, protect safe/star squares, require an exact finish, and handle common bonus-turn rules explicitly in configuration. Three consecutive sixes are treated as a turn-forfeit rule.
+
 ## Final QA
 
 Run:
