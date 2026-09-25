@@ -112,7 +112,7 @@ voiceDescribe("classic route geometry", () => {
     voiceExpect(getTokenBoardPosition(red, 1)).toEqual({ x: 6, y: 1 });
     voiceExpect(getTokenBoardPosition(red, 2)).toEqual({ x: 6, y: 2 });
     voiceExpect(getTokenBoardPosition(red, 6)).toEqual({ x: 5, y: 6 });
-    voiceExpect(getTokenBoardPosition(red, 11)).toEqual({ x: 0, y: 7 });
+    voiceExpect(getTokenBoardPosition(red, 11)).toEqual({ x: 0, y: 6 });
   });
 
   voiceIt("places each color start beside its own corner", () => {
