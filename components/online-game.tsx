@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import LudoBoard from "@/components/ludo-board";
-import LudoGameBar from "@/components/ludo-game-bar";
+import LudoPlayerDice from "@/components/ludo-player-dice";
+import LudoTableLayout from "@/components/ludo-table-layout";
 import { getCurrentPlayer, getLegalMoves } from "@/game-engine/ludo-engine";
 import { useLudoRealtime } from "@/hooks/use-ludo-realtime";
 import ChatPanel from "@/components/chat-panel";
@@ -114,22 +115,61 @@ export default function OnlineGame({ gameId }: { gameId: string }) {
           </div>
         </header>
 
-        <section className="rounded-[30px] border border-white/10 bg-black/20 p-2 shadow-2xl sm:p-4">
-          <LudoBoard
-            state={state}
-            playerId={myPlayerId}
-            legalMoves={legalMoves}
-            onToken={myTurn ? move : undefined}
-          />
-        </section>
-
-        <LudoGameBar
-          state={state}
-          players={state.players}
-          userId={userId}
-          playerId={myPlayerId}
-          onRoll={roll}
-        />
+        <LudoTableLayout
+          topLeft={
+            state.players[1] ? (
+              <LudoPlayerDice
+                player={state.players[1]}
+                state={state}
+                isCurrent={state.players[1].id === current.id}
+                isMine={state.players[1].userId === userId}
+                onRoll={roll}
+              />
+            ) : null
+          }
+          topRight={
+            state.players[2] ? (
+              <LudoPlayerDice
+                player={state.players[2]}
+                state={state}
+                isCurrent={state.players[2].id === current.id}
+                isMine={state.players[2].userId === userId}
+                onRoll={roll}
+              />
+            ) : null
+          }
+          bottomLeft={
+            state.players[0] ? (
+              <LudoPlayerDice
+                player={state.players[0]}
+                state={state}
+                isCurrent={state.players[0].id === current.id}
+                isMine={state.players[0].userId === userId}
+                onRoll={roll}
+              />
+            ) : null
+          }
+          bottomRight={
+            state.players[3] ? (
+              <LudoPlayerDice
+                player={state.players[3]}
+                state={state}
+                isCurrent={state.players[3].id === current.id}
+                isMine={state.players[3].userId === userId}
+                onRoll={roll}
+              />
+            ) : null
+          }
+        >
+          <div className="rounded-[30px] border border-white/10 bg-black/20 p-2 shadow-2xl sm:p-4">
+            <LudoBoard
+              state={state}
+              playerId={myPlayerId}
+              legalMoves={legalMoves}
+              onToken={myTurn ? move : undefined}
+            />
+          </div>
+        </LudoTableLayout>
 
         {error && <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-3 text-sm text-amber-200">{error}</div>}
 
