@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { HOME_LANES, CENTER, TRACK } from "@/game-engine/board";
+import { useCallback, useEffect, useState } from "react";
+import LudoBoard from "@/components/ludo-board";
 import { COLOR_NAMES, FINISH_STEPS } from "@/game-engine/constants";
 import { getCurrentPlayer, getLegalMoves, globalTrackIndex } from "@/game-engine/ludo-engine";
 import { useLudoRealtime } from "@/hooks/use-ludo-realtime";
@@ -103,8 +103,6 @@ export default function OnlineGame({ gameId }: { gameId: string }) {
     }
   }
 
-  const boardCells = useMemo(() => Array.from({ length: 225 }), []);
-
   if (!state) {
     return (
       <main className="grid min-h-screen place-items-center p-6 text-white">
@@ -135,65 +133,7 @@ export default function OnlineGame({ gameId }: { gameId: string }) {
 
         <section className="grid gap-4 lg:grid-cols-[1fr_340px]">
           <div className="rounded-3xl border border-white/10 bg-white/[.05] p-2 sm:p-4">
-            <div className="mx-auto grid aspect-square w-full max-w-[760px] grid-cols-[repeat(15,minmax(0,1fr))] grid-rows-[repeat(15,minmax(0,1fr))] overflow-hidden rounded-2xl border-4 border-slate-900/30 bg-slate-200 shadow-2xl">
-              {boardCells.map((_, index) => {
-                const x = index % 15;
-                const y = Math.floor(index / 15);
-                const trackIndex = TRACK.findIndex((cell) => cell.x === x && cell.y === y);
-                const laneColor = (Object.keys(HOME_LANES) as PlayerColor[]).find((color) =>
-                  HOME_LANES[color].some((cell) => cell.x === x && cell.y === y),
-                );
-                const isCenter = x === CENTER.x && y === CENTER.y;
-
-                const tokensHere = state.players.flatMap((player) =>
-                  player.tokens
-                    .filter((token) => token.steps > 0 && token.steps < FINISH_STEPS)
-                    .filter((token) => {
-                      const mapped = globalTrackIndex(player, token.steps);
-                      return mapped !== null && mapped === trackIndex;
-                    })
-                    .map((token) => ({ player, token })),
-                );
-
-                return (
-                  <div
-                    key={index}
-                    className={cx(
-                      "relative flex items-center justify-center border border-slate-300/70 text-[7px] sm:text-[9px]",
-                      trackIndex >= 0 ? "bg-white" : "bg-slate-100",
-                      laneColor ? LANE[laneColor] : "",
-                      isCenter ? "bg-gradient-to-br from-fuchsia-500 via-sky-400 to-emerald-400" : "",
-                    )}
-                  >
-                    {trackIndex >= 0 && <span className="absolute left-0.5 top-0.5 text-slate-400">{trackIndex + 1}</span>}
-                    {isCenter && <span className="text-xl font-black text-white sm:text-4xl">🏠</span>}
-
-                    {tokensHere.length > 0 && (
-                      <div className="z-10 flex -space-x-1">
-                        {tokensHere.map(({ player, token }) => {
-                          const active = myTurn && player.id === current?.id && legalMoves.includes(token.id);
-                          return (
-                            <button
-                              key={player.id + "-" + token.id}
-                              onClick={() => move(token.id)}
-                              disabled={!active}
-                              aria-label={COLOR_NAMES[player.color] + " token " + (token.id + 1)}
-                              className={cx(
-                                "grid h-6 w-6 place-items-center rounded-full border-2 border-white text-[9px] font-black text-white shadow sm:h-8 sm:w-8",
-                                DOT[player.color],
-                                active ? "animate-bounce ring-2 ring-white" : "opacity-80",
-                              )}
-                            >
-                              {token.id + 1}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <LudoBoard state={state} playerId={current?.id ?? null} legalMoves={legalMoves} onToken={move} />
           </div>
 
           <aside className="space-y-4">
