@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { getDb } from "@/db/client";
 
@@ -8,7 +8,9 @@ const SESSION_COOKIE = "ludo_session";
 const SESSION_DAYS = 30;
 
 function hashValue(value: string): string {
-  return createHash("sha256").update(value).digest("hex");
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) throw new Error("SESSION_SECRET is not configured.");
+  return createHmac("sha256", secret).update(value).digest("hex");
 }
 
 async function hashPassword(password: string): Promise<string> {
