@@ -40,6 +40,11 @@ export default function VoiceCommand({ gameId, state, enabled = true, onGame }: 
   const [status, setStatus] = useState("Tap mic and speak.");
   const [supported, setSupported] = useState(true);
 
+  const stateRef = useRef(state);
+  const onGameRef = useRef(onGame);
+  stateRef.current = state;
+  onGameRef.current = onGame;
+
   useEffect(() => {
     const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!Ctor) {
@@ -70,7 +75,7 @@ export default function VoiceCommand({ gameId, state, enabled = true, onGame }: 
       if (!finalText) return;
       setTranscript(finalText);
 
-      const intent: VoiceIntent | null = parseVoiceCommand(finalText, state);
+      const intent: VoiceIntent | null = parseVoiceCommand(finalText, stateRef.current);
       if (!intent) {
         setStatus("Command not understood.");
         return;
@@ -85,7 +90,7 @@ export default function VoiceCommand({ gameId, state, enabled = true, onGame }: 
         });
         const body = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(body.error ?? "Voice action failed.");
-        onGame(body.game as GameState);
+        onGameRef.current(body.game as GameState);
         setStatus(intent.type === "roll" ? "Dice rolled by voice." : "Token moved by voice.");
       } catch (error) {
         setStatus(error instanceof Error ? error.message : "Voice action failed.");
@@ -96,7 +101,7 @@ export default function VoiceCommand({ gameId, state, enabled = true, onGame }: 
       instance.stop();
       recognition.current = null;
     };
-  }, [gameId, onGame, state]);
+  }, [gameId, enabled]);
 
   if (!enabled) return null;
 
