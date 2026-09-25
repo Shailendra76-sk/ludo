@@ -15,5 +15,5 @@ export async function GET(_: Request, context: { params: Promise<{ gameId: strin
   if (!players.some((player: { userId?: string | null }) => player.userId === user.id)) {
     return jsonError("You are not a member of this game.", 403);
   }
-  return NextResponse.json({ game: game.state });
+  return NextResponse.json({ game: game.state, roomId: game.room_id ?? null });
 }
