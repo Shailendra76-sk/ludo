@@ -222,3 +222,15 @@ CREATE TABLE IF NOT EXISTS notifications (
 
 CREATE INDEX IF NOT EXISTS notifications_user_idx ON notifications(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS notifications_unread_idx ON notifications(user_id) WHERE read_at IS NULL;
+
+
+CREATE TABLE IF NOT EXISTS matchmaking_queue (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  player_count INTEGER NOT NULL CHECK (player_count IN (2,3,4)),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id)
+);
+
+CREATE INDEX IF NOT EXISTS matchmaking_queue_group_idx
+  ON matchmaking_queue(player_count,created_at);
