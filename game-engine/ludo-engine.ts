@@ -113,7 +113,7 @@ export function applyDice(state: GameState, dice: number): GameState {
     dice: null,
     currentPlayerIndex: nextPlayerIndex,
     turnNumber: state.turnNumber + 1,
-    message: getCurrentPlayer(state.players, nextPlayerIndex).name + "'s turn.",
+    message: getPlayerAtIndex(state.players, nextPlayerIndex).name + "'s turn.",
     stateVersion: rolled.stateVersion + 1,
   };
 }
@@ -193,7 +193,7 @@ function getCapturedPlayerIds(players: Player[], moverId: number, moverSteps: nu
     .map((player) => player.id);
 }
 
-function getCurrentPlayer(players: Player[], index: number): Player {
+function getPlayerAtIndex(players: Player[], index: number): Player {
   return players[index];
 }
 
