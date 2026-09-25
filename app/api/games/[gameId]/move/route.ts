@@ -17,10 +17,14 @@ export async function POST(request: Request, context: { params: Promise<{ gameId
     if (!actionId || !Number.isInteger(tokenId) || tokenId < 0 || tokenId > 3) return jsonError("Invalid action.", 400);
     const { gameId } = await context.params;
 
-    const state = await transactGame(gameId, actionId, user.id, "TOKEN_MOVED", (current) => ({
+    const state = await transactGame(gameId, actionId, user.id, "TOKEN_MOVED", (current) => {
+      const currentPlayer = current.players[current.currentPlayerIndex];
+      if (!currentPlayer || currentPlayer.userId !== user.id) throw new Error("You are not the current player.");
+      return {
       state: moveToken(current, tokenId),
       payload: { tokenId },
-    }));
+      };
+    });
     return NextResponse.json({ game: state });
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "Unable to move token.", 400);
