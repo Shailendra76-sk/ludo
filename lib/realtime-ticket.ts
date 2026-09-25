@@ -1,4 +1,4 @@
-import { createHmac } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 type TicketPayload = {
   userId: string;
@@ -42,7 +42,7 @@ export function verifyRealtimeTicket(token: string): TicketPayload | null {
   const a = Buffer.from(signature);
   const b = Buffer.from(expected);
   if (a.length !== b.length) return null;
-  const valid = require("node:crypto").timingSafeEqual(a, b);
+  const valid = timingSafeEqual(a, b);
   if (!valid) return null;
 
   try {
