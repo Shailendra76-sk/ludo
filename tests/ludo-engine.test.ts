@@ -216,3 +216,34 @@ describe("Classic Ludo movement rules", () => {
     expect(state.dice).toBeNull();
   });
 });
+
+
+describe("Independent token selection", () => {
+  it("keeps four tokens independent within the same player", () => {
+    let state = createInitialState(4);
+    state = applyDice(state, 6);
+    state = moveToken(state, 1);
+    expect(state.players[0].tokens[0].steps).toBe(0);
+    expect(state.players[0].tokens[1].steps).toBe(1);
+    expect(state.players[0].tokens[2].steps).toBe(0);
+    expect(state.players[0].tokens[3].steps).toBe(0);
+  });
+
+  it("allows a different token to be selected on a later six", () => {
+    let state = createInitialState(4);
+    state = applyDice(state, 6);
+    state = moveToken(state, 0);
+    expect(state.currentPlayerIndex).toBe(0);
+
+    state = applyDice(state, 6);
+    expect(getLegalMoves(state)).toEqual([0, 1, 2, 3]);
+    state = moveToken(state, 2);
+
+    expect(state.players[0].tokens.map((token) => token.steps)).toEqual([1, 0, 1, 0]);
+  });
+
+  it("keeps token numbers independent instead of using one global token id", () => {
+    const state = createInitialState(4);
+    expect(state.players.every((player) => player.tokens.map((token) => token.id).join(",") === "0,1,2,3")).toBe(true);
+  });
+});
