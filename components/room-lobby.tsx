@@ -20,6 +20,7 @@ export default function RoomLobby({ initialRoomId }: Props) {
   const [players, setPlayers] = useState("4");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [currentUserId, setCurrentUserId] = useState("");
 
   async function requestJson(url: string, options?: RequestInit) {
     const response = await fetch(url, { ...options, headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) } });
@@ -82,13 +83,20 @@ export default function RoomLobby({ initialRoomId }: Props) {
   }
 
   useEffect(() => {
+    fetch("/api/auth/me").then((response) => response.json()).then((body) => {
+      if (body.user?.id) setCurrentUserId(body.user.id);
+    }).catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
     if (!roomId) return;
     const id = window.setInterval(() => refresh(roomId), 2000);
     refresh(roomId);
     return () => window.clearInterval(id);
   }, [roomId]);
 
-  const me = data?.players.find((p) => data.room.hostUserId === p.userId);
+  const me = data?.players.find((p) => p.userId === currentUserId);
+  const meIsReady = me?.ready ?? false;
 
   return (
     <main className="min-h-screen px-4 py-8 text-white">
@@ -142,7 +150,7 @@ export default function RoomLobby({ initialRoomId }: Props) {
             </div>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              <button onClick={() => ready(!(data.players.find((p) => p.userId === data.room.hostUserId)?.ready ?? false))} className="rounded-xl bg-emerald-400 px-4 py-3 font-black text-slate-950">Toggle Ready</button>
+              <button onClick={() => ready(!meIsReady)} className="rounded-xl bg-emerald-400 px-4 py-3 font-black text-slate-950">Toggle Ready</button>
               {me && data.room.hostUserId === me.userId && (
                 <button onClick={start} disabled={busy} className="rounded-xl bg-white px-4 py-3 font-black text-slate-900 disabled:opacity-50">Start Game</button>
               )}
