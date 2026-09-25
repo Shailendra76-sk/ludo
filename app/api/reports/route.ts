@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/db/client";
-import { jsonError, requireJsonObject } from "@/lib/http";
+import { clientAddress, jsonError, rateLimit, requireJsonObject } from "@/lib/http";
 
 export const runtime="nodejs";
 
 export async function POST(request:Request){
+  if (!rateLimit("report:" + clientAddress(request), 10, 60_000)) return jsonError("Too many reports. Try again later.", 429);
   const user=await getCurrentUser();
   if(!user) return jsonError("Authentication required.",401);
   try{
