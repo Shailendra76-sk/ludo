@@ -16,16 +16,34 @@ export default function LudoTableLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto grid w-full max-w-[1120px] grid-cols-2 items-center gap-3 md:grid-cols-[150px_minmax(420px,760px)_150px] md:grid-rows-[auto_minmax(0,1fr)_auto] md:gap-x-4 md:gap-y-3">
-      <div className="order-1 md:col-start-1 md:row-start-1 md:order-none">{red}</div>
-      <div className="order-2 md:col-start-3 md:row-start-1 md:order-none">{green}</div>
+    <div className="mx-auto w-full max-w-[1120px]">
+      <div className="relative mx-auto w-full max-w-[1080px]">
+        <div className="relative mx-auto w-full max-w-[760px]">
+          {children}
+        </div>
 
-      <div className="order-5 col-span-2 md:col-start-2 md:row-start-1 md:row-span-3 md:order-none">
-        {children}
+        {/* Desktop: each dice belongs to the matching board corner. */}
+        <div className="pointer-events-auto absolute left-0 top-[5%] hidden w-[145px] md:block">
+          {red}
+        </div>
+        <div className="pointer-events-auto absolute right-0 top-[5%] hidden w-[145px] md:block">
+          {green}
+        </div>
+        <div className="pointer-events-auto absolute bottom-[5%] left-0 hidden w-[145px] md:block">
+          {blue}
+        </div>
+        <div className="pointer-events-auto absolute bottom-[5%] right-0 hidden w-[145px] md:block">
+          {yellow}
+        </div>
+
+        {/* Mobile: keep all four player dice below the board in corner order. */}
+        <div className="mt-3 grid grid-cols-2 gap-2 md:hidden">
+          <div>{red}</div>
+          <div>{green}</div>
+          <div>{blue}</div>
+          <div>{yellow}</div>
+        </div>
       </div>
-
-      <div className="order-3 md:col-start-1 md:row-start-3 md:order-none">{blue}</div>
-      <div className="order-4 md:col-start-3 md:row-start-3 md:order-none">{yellow}</div>
     </div>
   );
 }
