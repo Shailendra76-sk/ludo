@@ -207,7 +207,7 @@ export async function startRoom(roomId: string, userId: string) {
       "SELECT user_id,player_slot,ready FROM room_players WHERE room_id=$1 ORDER BY player_slot",
       [roomId],
     );
-    if (players.rowCount < 2) throw new Error("At least two players are required.");
+    if ((players.rowCount ?? 0) < 2) throw new Error("At least two players are required.");
     if (players.rows.some((p) => !p.ready)) throw new Error("All players must be ready.");
 
     const gameResult = await client.query("SELECT state FROM games WHERE id=$1 FOR UPDATE", [room.game_id]);
