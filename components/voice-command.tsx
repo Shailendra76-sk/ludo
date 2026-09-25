@@ -51,7 +51,7 @@ export default function VoiceCommand({ gameId, state, enabled = true, onGame }: 
     const instance = new Ctor();
     instance.continuous = false;
     instance.interimResults = true;
-    instance.lang = "hi-IN,en-US";
+    instance.lang = typeof navigator.language === "string" && navigator.language.toLowerCase().startsWith("en") ? "en-IN" : "hi-IN";
     instance.onstart = () => {
       setListening(true);
       setStatus("Listening… say “six”, “roll dice”, or “token two”.");
