@@ -46,3 +46,31 @@ CREATE TABLE IF NOT EXISTS game_events (
 );
 
 CREATE INDEX IF NOT EXISTS game_events_game_idx ON game_events(game_id, id);
+
+
+CREATE TABLE IF NOT EXISTS rooms (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT NOT NULL UNIQUE CHECK (code ~ '^[A-Z0-9]{6}$'),
+  host_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  game_id UUID NOT NULL UNIQUE REFERENCES games(id) ON DELETE CASCADE,
+  status TEXT NOT NULL CHECK (status IN ('lobby','starting','closed')) DEFAULT 'lobby',
+  visibility TEXT NOT NULL CHECK (visibility IN ('private','public')) DEFAULT 'private',
+  max_players INTEGER NOT NULL CHECK (max_players IN (2,3,4)),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS rooms_status_idx ON rooms(status);
+CREATE INDEX IF NOT EXISTS rooms_host_idx ON rooms(host_user_id);
+
+CREATE TABLE IF NOT EXISTS room_players (
+  room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  player_slot INTEGER NOT NULL CHECK (player_slot BETWEEN 0 AND 3),
+  ready BOOLEAN NOT NULL DEFAULT false,
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (room_id, user_id),
+  UNIQUE(room_id, player_slot)
+);
+
+CREATE INDEX IF NOT EXISTS room_players_user_idx ON room_players(user_id);
