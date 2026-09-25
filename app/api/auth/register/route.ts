@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { createUser } from "@/lib/auth";
-import { jsonError, requireJsonObject } from "@/lib/http";
+import { clientAddress, jsonError, rateLimit, requireJsonObject } from "@/lib/http";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (!rateLimit("register:" + clientAddress(request), 8, 60_000)) return jsonError("Too many registration attempts. Try again later.", 429);
   try {
     const body = requireJsonObject(await request.json());
     const user = await createUser({
