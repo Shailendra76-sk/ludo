@@ -8,6 +8,7 @@ export type Token = {
 
 export type Player = {
   id: number;
+  userId?: string | null;
   name: string;
   color: PlayerColor;
   tokens: Token[];
