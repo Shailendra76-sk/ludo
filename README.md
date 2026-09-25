@@ -113,4 +113,16 @@ See docs/PHASE-6.md.
 
 See docs/PHASE-7.md.
 
+## Phase 8 — Quick Match & replay
+
+- Public matchmaking queue for 2 / 3 / 4 players
+- Transactional queue matching
+- Automatic public room creation for matched players
+- Quick Match UI at /quick-match
+- Queue cancellation and status
+- Authorized replay event API
+- Replay frame builder and scrubber UI at /play/:gameId/replay
+
+See docs/PHASE-8.md.
+
 Voice-command control remains intentionally deferred to a later phase as requested.
