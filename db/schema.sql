@@ -275,7 +275,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
 
 INSERT INTO app_settings(key,value) VALUES
   ('branding', '{"appName":"Ludo Play","logoUrl":null,"faviconUrl":null,"welcomeMessage":"Welcome to Ludo Play"}'::jsonb),
-  ('game', '{"turnTimeSeconds":15,"requireSixToStart":true,"rollAgainOnSix":true}'::jsonb)
+  ('game', '{"turnTimeSeconds":15,"requireSixToStart":true,"rollAgainOnSix":true,"rollAgainOnCapture":true,"rollAgainOnHome":true,"threeSixPenalty":true}'::jsonb)
 ON CONFLICT (key) DO NOTHING;
 
 
