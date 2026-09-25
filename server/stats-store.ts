@@ -27,7 +27,7 @@ export async function recordFinishedGame(
     tokensFinished: player.tokens.filter((token) => token.steps >= 58).length,
   }));
 
-  const client = transactionClient ?? await db.connect();
+  const client: PoolClient = transactionClient ?? await getDb().connect();
   const ownsTransaction = !transactionClient;
   try {
     if (ownsTransaction) await client.query("BEGIN");
