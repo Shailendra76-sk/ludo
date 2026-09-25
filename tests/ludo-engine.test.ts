@@ -109,9 +109,9 @@ voiceDescribe("classic route geometry", () => {
   voiceIt("starts red beside the top-left home and moves clockwise", () => {
     const board = createInitialState(4);
     const red = board.players[0];
-    voiceExpect(getTokenBoardPosition(red, 1)).toEqual({ x: 6, y: 1 });
-    voiceExpect(getTokenBoardPosition(red, 2)).toEqual({ x: 6, y: 2 });
-    voiceExpect(getTokenBoardPosition(red, 6)).toEqual({ x: 5, y: 6 });
+    voiceExpect(getTokenBoardPosition(red, 1)).toEqual({ x: 1, y: 6 });
+    voiceExpect(getTokenBoardPosition(red, 2)).toEqual({ x: 2, y: 6 });
+    voiceExpect(getTokenBoardPosition(red, 6)).toEqual({ x: 6, y: 5 });
     voiceExpect(getTokenBoardPosition(red, 11)).toEqual({ x: 0, y: 6 });
   });
 
@@ -121,10 +121,10 @@ voiceDescribe("classic route geometry", () => {
       board.players.map((player) => [player.color, getTokenBoardPosition(player, 1)]),
     );
     voiceExpect(positions).toEqual({
-      red: { x: 6, y: 1 },
-      green: { x: 1, y: 8 },
-      yellow: { x: 8, y: 13 },
-      blue: { x: 13, y: 6 },
+      red: { x: 1, y: 6 },
+      green: { x: 8, y: 1 },
+      yellow: { x: 13, y: 8 },
+      blue: { x: 6, y: 13 },
     });
   });
 });
@@ -134,9 +134,9 @@ describe("Classic Ludo movement rules", () => {
   it("uses clockwise movement from the red start", () => {
     const state = createInitialState(4);
     const red = state.players[0];
-    expect(getTokenBoardPosition(red, 1)).toEqual({ x: 6, y: 1 });
-    expect(getTokenBoardPosition(red, 2)).toEqual({ x: 6, y: 2 });
-    expect(getTokenBoardPosition(red, 6)).toEqual({ x: 5, y: 6 });
+    expect(getTokenBoardPosition(red, 1)).toEqual({ x: 1, y: 6 });
+    expect(getTokenBoardPosition(red, 2)).toEqual({ x: 2, y: 6 });
+    expect(getTokenBoardPosition(red, 6)).toEqual({ x: 6, y: 5 });
     expect(getTokenBoardPosition(red, 12)).toEqual({ x: 0, y: 7 });
   });
 
@@ -179,9 +179,9 @@ describe("Classic Ludo movement rules", () => {
   it("enters the colored home lane after completing the shared circuit", () => {
     const state = createInitialState(4);
     const red = state.players[0];
-    expect(getTokenBoardPosition(red, 52)).toEqual({ x: 7, y: 0 });
-    expect(getTokenBoardPosition(red, 53)).toEqual({ x: 7, y: 1 });
-    expect(getTokenBoardPosition(red, 57)).toEqual({ x: 7, y: 5 });
+    expect(getTokenBoardPosition(red, 52)).toEqual({ x: 7, y: 1 });
+    expect(getTokenBoardPosition(red, 53)).toEqual({ x: 7, y: 2 });
+    expect(getTokenBoardPosition(red, 57)).toEqual({ x: 7, y: 6 });
     expect(getTokenBoardPosition(red, 58)).toEqual({ x: 7, y: 7 });
   });
 
