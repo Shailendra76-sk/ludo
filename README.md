@@ -99,4 +99,18 @@ See docs/PHASE-5.md.
 
 See docs/PHASE-6.md.
 
+## Phase 7 — Friends, chat & notifications
+
+- Player search and online/in-game presence indicators
+- Friend requests, acceptance, rejection and removal
+- Player blocking and relationship cleanup
+- Friend room invitations via notifications
+- Persistent room chat with realtime delivery
+- Chat rate limiting and member-only access
+- Notification inbox with unread count and mark-all-read
+- Social dashboard at /social
+- Chat panel embedded in online games
+
+See docs/PHASE-7.md.
+
 Voice-command control remains intentionally deferred to a later phase as requested.
