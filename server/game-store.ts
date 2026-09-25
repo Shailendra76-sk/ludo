@@ -1,5 +1,6 @@
 import { getDb } from "@/db/client";
 import type { GameConfig, GameState } from "@/lib/types";
+import { publishRealtimeEvent } from "@/server/realtime-pubsub";
 
 export async function persistNewGame(state: GameState) {
   await getDb().query(
@@ -54,6 +55,16 @@ export async function transactGame<T>(
       [gameId, actionId, eventType, actorUserId, JSON.stringify({ ...(result.payload ?? {}), state: result.state })],
     );
     await client.query("COMMIT");
+    const room = await db.query("SELECT id FROM rooms WHERE game_id=$1 LIMIT 1", [gameId]);
+    if (room.rowCount) {
+      await publishRealtimeEvent({
+        kind: "game",
+        type: eventType,
+        roomId: room.rows[0].id,
+        gameId,
+        stateVersion: result.state.stateVersion,
+      });
+    }
     return result.state;
   } catch (error) {
     await client.query("ROLLBACK");
