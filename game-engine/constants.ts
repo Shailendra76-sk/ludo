@@ -15,10 +15,10 @@ export const COLOR_NAMES: Record<PlayerColor, string> = {
 };
 
 export const START_OFFSETS: Record<PlayerColor, number> = {
-  red: 0,
-  blue: 13,
-  green: 26,
-  yellow: 39,
+  red: 39,
+  green: 0,
+  blue: 26,
+  yellow: 13,
 };
 
 export const SAFE_TRACK_INDEXES = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
