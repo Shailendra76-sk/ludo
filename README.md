@@ -125,4 +125,19 @@ See docs/PHASE-7.md.
 
 See docs/PHASE-8.md.
 
+## Phase 9 — Admin & security hardening
+
+- Database-backed player/admin roles
+- Admin dashboard at /admin
+- User, game and report inspection
+- Session revocation and role management
+- Audit log storage
+- Report moderation APIs
+- Branding and game settings storage/API
+- Browser security headers and production HSTS
+- Abuse-sensitive API rate limiting
+- Security checklist documentation
+
+See docs/PHASE-9.md and docs/SECURITY-CHECKLIST.md.
+
 Voice-command control remains intentionally deferred to a later phase as requested.
