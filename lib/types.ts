@@ -62,3 +62,44 @@ export type RoomPlayer = {
   username: string;
   ready: boolean;
 };
+
+
+export type FriendRequestStatus = "pending" | "accepted" | "rejected" | "cancelled";
+
+export type FriendSummary = {
+  userId: string;
+  username: string;
+  displayName: string;
+  online: boolean;
+  inGame: boolean;
+  createdAt: string;
+};
+
+export type FriendRequest = {
+  id: string;
+  requesterId: string;
+  requesterUsername: string;
+  requesterDisplayName: string;
+  addresseeId: string;
+  status: FriendRequestStatus;
+  createdAt: string;
+};
+
+export type ChatMessage = {
+  id: number;
+  roomId: string;
+  userId: string;
+  username: string;
+  body: string;
+  createdAt: string;
+};
+
+export type Notification = {
+  id: number;
+  type: string;
+  title: string;
+  body: string;
+  data: Record<string, unknown>;
+  readAt: string | null;
+  createdAt: string;
+};
