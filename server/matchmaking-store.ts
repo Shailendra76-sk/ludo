@@ -3,6 +3,7 @@ import { createInitialState } from "@/game-engine/ludo-engine";
 import { publishRealtimeEvent } from "@/server/realtime-pubsub";
 import type { GameConfig, MatchmakingTicket } from "@/lib/types";
 import type { PoolClient } from "pg";
+import { randomInt } from "node:crypto";
 
 function mapTicket(row: {
   id: string;
@@ -107,7 +108,7 @@ export async function queueForMatch(
           "INSERT INTO rooms(code,host_user_id,game_id,status,visibility,max_players) VALUES($1,$2,$3,'starting','public',$4) RETURNING id,code",
           [code, identities[0].userId, state.id, playerCount],
         );
-        roomRow = roomRow as { id: string; code: string };
+        roomRow = room.rows[0] as { id: string; code: string };
       } catch (error) {
         if (!(error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "23505")) throw error;
       }
