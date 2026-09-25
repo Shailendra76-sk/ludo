@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const response = NextResponse.next();
   const isProduction = process.env.NODE_ENV === "production";
   if (isProduction) response.headers.set("Strict-Transport-Security","max-age=31536000; includeSubDomains");
