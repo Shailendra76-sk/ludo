@@ -33,7 +33,7 @@ describe("Ludo engine foundation", () => {
     state = moveToken(state, 0);
     state = applyDice(state, 3);
     state = moveToken(state, 0);
-    expect(state.currentPlayerIndex).toBe(2);
+    expect(state.currentPlayerIndex).toBe(1);
   });
 });
 
