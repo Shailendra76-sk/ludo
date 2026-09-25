@@ -4,6 +4,7 @@ export type GameMode = "classic" | "ai";
 export type BotDifficulty = "easy" | "medium" | "hard" | "expert";
 export type RoomVisibility = "private" | "public";
 export type RoomStatus = "lobby" | "starting" | "closed";
+export type UserRole = "player" | "admin";
 
 export type Token = {
   id: number;
@@ -123,4 +124,34 @@ export type ReplayEvent = {
   createdAt: string;
   state: GameState | null;
   previousState: GameState | null;
+};
+
+
+export type AdminDashboardStats = {
+  totalUsers: number;
+  activeUsers: number;
+  gamesToday: number;
+  activeGames: number;
+  completedGames: number;
+  openReports: number;
+};
+
+export type AdminUserRow = {
+  id: string;
+  username: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+  gamesPlayed: number;
+  wins: number;
+  rating: number;
+};
+
+export type AdminGameRow = {
+  id: string;
+  status: string;
+  playerCount: number;
+  mode: string;
+  stateVersion: number;
+  updatedAt: string;
 };
