@@ -70,4 +70,17 @@ See docs/PHASE-3.md.
 
 See docs/PHASE-4.md.
 
+## Phase 5 — Real-time multiplayer foundation
+
+- Socket.IO server with room-scoped WebSocket channels
+- Signed short-lived realtime tickets
+- Redis pub/sub event fan-out
+- Automatic reconnect and ticket refresh
+- Realtime room lobby updates
+- Online game client at /play/:gameId
+- Server-authoritative REST mutations with realtime invalidation
+- Member-only room and game reads
+
+See docs/PHASE-5.md.
+
 Voice-command control remains intentionally deferred to a later phase as requested.
