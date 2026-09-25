@@ -128,3 +128,88 @@ voiceDescribe("classic route geometry", () => {
     });
   });
 });
+
+
+describe("Classic Ludo movement rules", () => {
+  it("uses clockwise movement from the red start", () => {
+    const state = createInitialState(4);
+    const red = state.players[0];
+    expect(getTokenBoardPosition(red, 1)).toEqual({ x: 6, y: 1 });
+    expect(getTokenBoardPosition(red, 2)).toEqual({ x: 6, y: 2 });
+    expect(getTokenBoardPosition(red, 6)).toEqual({ x: 5, y: 6 });
+    expect(getTokenBoardPosition(red, 12)).toEqual({ x: 0, y: 7 });
+  });
+
+  it("starts every color at its own home-adjacent entry square", () => {
+    const state = createInitialState(4);
+    const positions = Object.fromEntries(
+      state.players.map((player) => [player.color, getTokenBoardPosition(player, 1)]),
+    );
+    expect(positions).toEqual({
+      red: { x: 6, y: 1 },
+      green: { x: 13, y: 6 },
+      yellow: { x: 8, y: 13 },
+      blue: { x: 1, y: 8 },
+    });
+  });
+
+  it("captures one opponent on a non-safe shared square and grants a bonus turn", () => {
+    const state = createInitialState(2);
+    state.players[0].tokens[0].steps = 1;
+    state.players[1].tokens[0].steps = 41;
+    state.dice = 1;
+    const next = moveToken(state, 0);
+
+    expect(next.players[1].tokens[0].steps).toBe(0);
+    expect(next.currentPlayerIndex).toBe(0);
+    expect(next.message).toContain("captured");
+  });
+
+  it("does not capture on a safe square", () => {
+    const state = createInitialState(2);
+    state.players[0].tokens[0].steps = 1;
+    state.players[1].tokens[0].steps = 40;
+    state.dice = 1;
+    const next = moveToken(state, 0);
+
+    expect(next.players[1].tokens[0].steps).toBe(40);
+    expect(next.players[0].tokens[0].steps).toBe(2);
+  });
+
+  it("enters the colored home lane after completing the shared circuit", () => {
+    const state = createInitialState(4);
+    const red = state.players[0];
+    expect(getTokenBoardPosition(red, 51)).toEqual({ x: 7, y: 0 });
+    expect(getTokenBoardPosition(red, 52)).toEqual({ x: 7, y: 1 });
+    expect(getTokenBoardPosition(red, 57)).toEqual({ x: 7, y: 6 });
+    expect(getTokenBoardPosition(red, 58)).toEqual({ x: 7, y: 7 });
+  });
+
+  it("requires an exact roll to enter the center", () => {
+    const state = createInitialState(4);
+    state.players[0].tokens[0].steps = 57;
+    state.dice = 2;
+    expect(getLegalMoves(state)).toEqual([]);
+    state.dice = 1;
+    expect(getLegalMoves(state)).toEqual([0, 1, 2, 3]);
+  });
+
+  it("allows another roll after a six when no token can move", () => {
+    const state = createInitialState(2);
+    const next = applyDice(state, 6);
+    expect(next.currentPlayerIndex).toBe(0);
+    expect(next.dice).toBe(6);
+  });
+
+  it("forfeits the turn on the third consecutive six", () => {
+    let state = createInitialState(2);
+    state = applyDice(state, 6);
+    state.dice = null;
+    state = applyDice(state, 6);
+    state.dice = null;
+    state = applyDice(state, 6);
+    expect(state.currentPlayerIndex).toBe(1);
+    expect(state.sixStreak).toBe(0);
+    expect(state.dice).toBeNull();
+  });
+});
