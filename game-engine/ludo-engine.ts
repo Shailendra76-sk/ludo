@@ -15,13 +15,20 @@ export function createInitialState(
   firstPlayer?: { userId: string; name: string },
 ): GameState {
   const players = PLAYER_COLORS.slice(0, playerCount).map((color, index) =>
-    createPlayer(index, color, index === 0 ? firstPlayer : undefined),
+    createPlayer(
+      index,
+      color,
+      index === 0 ? firstPlayer : undefined,
+      configOverrides.mode === "ai" && index > 0,
+    ),
   );
   return {
     id: crypto.randomUUID(),
     status: "playing",
     config: {
       playerCount,
+      mode: "classic",
+      botDifficulty: "medium",
       turnTimeSeconds: 15,
       requireSixToStart: true,
       rollAgainOnSix: true,
@@ -37,13 +44,19 @@ export function createInitialState(
   };
 }
 
-function createPlayer(id: number, color: PlayerColor, identity?: { userId: string; name: string }): Player {
+function createPlayer(
+  id: number,
+  color: PlayerColor,
+  identity?: { userId: string; name: string },
+  isBot = false,
+): Player {
   return {
     id,
     userId: identity?.userId ?? null,
     name: identity?.name ?? color[0].toUpperCase() + color.slice(1),
     color,
     connected: true,
+    isBot,
     tokens: Array.from({ length: TOKENS_PER_PLAYER }, (_, tokenId) => ({ id: tokenId, steps: 0 })),
   };
 }
