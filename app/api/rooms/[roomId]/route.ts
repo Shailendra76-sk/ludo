@@ -13,6 +13,9 @@ export async function GET(_: Request, context: { params: Promise<{ roomId: strin
     const { roomId } = await context.params;
     const data = await getRoom(roomId);
     if (!data) return jsonError("Room not found.", 404);
+    if (!data.players.some((player) => player.userId === user.id)) {
+      return jsonError("You are not a member of this room.", 403);
+    }
     return NextResponse.json(data);
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "Unable to load room.", 400);
