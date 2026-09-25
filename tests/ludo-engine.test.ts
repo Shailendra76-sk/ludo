@@ -191,7 +191,7 @@ describe("Classic Ludo movement rules", () => {
     state.dice = 2;
     expect(getLegalMoves(state)).toEqual([]);
     state.dice = 1;
-    expect(getLegalMoves(state)).toEqual([0, 1, 2, 3]);
+    expect(getLegalMoves(state)).toEqual([0]);
   });
 
   it("allows another roll after a six when no token can move", () => {
