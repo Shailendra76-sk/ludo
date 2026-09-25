@@ -18,6 +18,8 @@ export async function POST(request: Request, context: { params: Promise<{ gameId
     const { gameId } = await context.params;
 
     const state = await transactGame(gameId, actionId, user.id, "DICE_ROLLED", (current) => {
+      const currentPlayer = current.players[current.currentPlayerIndex];
+      if (!currentPlayer || currentPlayer.userId !== user.id) throw new Error("You are not the current player.");
       const dice = secureServerDice();
       const next = applyDice(current, dice);
       if (next === current) throw new Error("Unable to roll dice.");
