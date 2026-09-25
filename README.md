@@ -141,3 +141,20 @@ See docs/PHASE-8.md.
 See docs/PHASE-9.md and docs/SECURITY-CHECKLIST.md.
 
 Voice-command control remains intentionally deferred to a later phase as requested.
+
+
+## Phase 10 — Voice + AI command control
+
+- Browser voice input for Hindi/English Ludo commands
+- Deterministic allowlisted voice intent parser
+- “six” / “छे” / “roll dice” roll intents
+- “token 2” / “गोटी 2 चलाओ” movement intents
+- Server-authoritative voice action endpoint
+- Voice action rate limiting and idempotency
+- Voice commands participate in the normal event/replay stream
+- Voice control integrated into online games
+- Final QA and production deployment checklist
+
+See docs/PHASE-10.md.
+
+Architecture: microphone → speech recognition → intent → authenticated server action → game engine → persistence → realtime UI.
