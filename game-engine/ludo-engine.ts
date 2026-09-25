@@ -12,8 +12,11 @@ import type { GameConfig, GameState, Player, PlayerColor } from "@/lib/types";
 export function createInitialState(
   playerCount: 2 | 3 | 4 = 4,
   configOverrides: Partial<GameConfig> = {},
+  firstPlayer?: { userId: string; name: string },
 ): GameState {
-  const players = PLAYER_COLORS.slice(0, playerCount).map((color, index) => createPlayer(index, color));
+  const players = PLAYER_COLORS.slice(0, playerCount).map((color, index) =>
+    createPlayer(index, color, index === 0 ? firstPlayer : undefined),
+  );
   return {
     id: crypto.randomUUID(),
     status: "playing",
@@ -34,10 +37,11 @@ export function createInitialState(
   };
 }
 
-function createPlayer(id: number, color: PlayerColor): Player {
+function createPlayer(id: number, color: PlayerColor, identity?: { userId: string; name: string }): Player {
   return {
     id,
-    name: color[0].toUpperCase() + color.slice(1),
+    userId: identity?.userId ?? null,
+    name: identity?.name ?? color[0].toUpperCase() + color.slice(1),
     color,
     connected: true,
     tokens: Array.from({ length: TOKENS_PER_PLAYER }, (_, tokenId) => ({ id: tokenId, steps: 0 })),
