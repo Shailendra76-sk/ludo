@@ -15,7 +15,7 @@ export default function ReplayViewer({ gameId }: { gameId: string }) {
   useEffect(()=>{
     fetch("/api/games/"+gameId+"/replay").then(r=>r.json()).then(b=>{
       if(b.error) throw new Error(b.error);
-      setFrames(buildReplayFrames(b.frames??[]));
+      setFrames(buildReplayFrames(b.events??[]));
     }).catch(e=>setError(e instanceof Error?e.message:"Unable to load replay."));
   },[gameId]);
   const frame=frames[index];
