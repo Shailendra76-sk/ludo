@@ -5,6 +5,7 @@ import { HOME_LANES, CENTER, TRACK } from "@/game-engine/board";
 import { COLOR_NAMES, FINISH_STEPS } from "@/game-engine/constants";
 import { getCurrentPlayer, getLegalMoves, globalTrackIndex } from "@/game-engine/ludo-engine";
 import { useLudoRealtime } from "@/hooks/use-ludo-realtime";
+import ChatPanel from "@/components/chat-panel";
 import type { GameState, PlayerColor } from "@/lib/types";
 
 const DOT: Record<PlayerColor, string> = {
@@ -247,6 +248,8 @@ export default function OnlineGame({ gameId }: { gameId: string }) {
                 </div>
               ))}
             </div>
+
+            {roomId && <ChatPanel roomId={roomId} />}
 
             {state.status === "finished" && (
               <div className="rounded-3xl border border-emerald-300/20 bg-emerald-400/10 p-5 text-center">
