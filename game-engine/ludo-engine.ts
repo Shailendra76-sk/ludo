@@ -13,6 +13,7 @@ export function createInitialState(
   playerCount: 2 | 3 | 4 = 4,
   configOverrides: Partial<GameConfig> = {},
   firstPlayer?: { userId: string; name: string },
+  initialStatus: GameState["status"] = "playing",
 ): GameState {
   const players = PLAYER_COLORS.slice(0, playerCount).map((color, index) =>
     createPlayer(
@@ -24,7 +25,7 @@ export function createInitialState(
   );
   return {
     id: crypto.randomUUID(),
-    status: "playing",
+    status: initialStatus,
     config: {
       playerCount,
       mode: "classic",
@@ -39,7 +40,7 @@ export function createInitialState(
     dice: null,
     turnNumber: 1,
     winnerId: null,
-    message: players[0].name + "'s turn",
+    message: initialStatus === "waiting" ? "Waiting in room lobby." : players[0].name + "'s turn",
     stateVersion: 1,
   };
 }
