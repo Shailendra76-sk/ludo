@@ -162,7 +162,7 @@ export function moveToken(state: GameState, tokenId: number): GameState {
   } else if (extraTurn) {
     message = player.name + " rolled a 6. Roll again.";
   } else {
-    message = getCurrentPlayer(withCaptures, nextPlayerIndex).name + "'s turn.";
+    message = getPlayerAtIndex(withCaptures, nextPlayerIndex).name + "'s turn.";
   }
 
   return {
