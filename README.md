@@ -58,4 +58,16 @@ npm test
 
 See docs/PHASE-3.md.
 
+## Phase 4 — Rooms & Lobby
+
+- Room creation and 6-character codes
+- Host ownership and player slots
+- Ready/unready flow
+- Host-only start
+- Atomic joins and room persistence
+- Responsive lobby at /rooms
+- Temporary state polling until realtime transport is implemented
+
+See docs/PHASE-4.md.
+
 Voice-command control remains intentionally deferred to a later phase as requested.
