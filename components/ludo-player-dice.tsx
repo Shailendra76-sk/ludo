@@ -22,7 +22,7 @@ export default function LudoPlayerDice({
   const canRoll = isCurrent && isMine && state.dice === null && state.status === "playing";
   const dots = isCurrent && state.dice ? PIPS[state.dice] ?? [] : [];
   return (
-    <div className={cx("rounded-2xl border-2 p-2 text-center shadow-lg sm:p-2.5", palette.soft, palette.border, isCurrent && "ring-2 ring-slate-900/10")}>
+    <div className={cx("w-full rounded-2xl border-2 p-2 text-center shadow-lg sm:p-2.5", palette.soft, palette.border, isCurrent && "ring-2 ring-slate-900/10")}>
       <div className="flex items-center justify-center gap-1.5">
         <span className={cx("h-2.5 w-2.5 rounded-full", palette.solid)} />
         <span className={cx("truncate text-[10px] font-black uppercase tracking-widest", palette.text)}>{player.name}</span>
