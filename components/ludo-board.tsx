@@ -122,10 +122,10 @@ export default function LudoBoard({
             const isBaseSpot = home ? BASE_SPOTS[home].some((spot) => spot.x === x && spot.y === y) : false;
             const safe = trackIndex >= 0 && isSafeTrack(trackIndex);
             const startColor =
-              trackIndex === 0 ? "green" :
-              trackIndex === 13 ? "yellow" :
-              trackIndex === 26 ? "blue" :
-              trackIndex === 39 ? "red" : null;
+              trackIndex === 0 ? "red" :
+              trackIndex === 13 ? "blue" :
+              trackIndex === 26 ? "yellow" :
+              trackIndex === 39 ? "green" : null;
 
             return (
               <div
