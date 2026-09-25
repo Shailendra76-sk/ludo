@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyDice, createInitialState, getLegalMoves, moveToken } from "@/game-engine/ludo-engine";
+import { applyDice, createInitialState, getLegalMoves, getTokenBoardPosition, moveToken } from "@/game-engine/ludo-engine";
 import { chooseBotToken } from "@/server/bot-ai";
 
 describe("Ludo engine foundation", () => {
@@ -101,5 +101,30 @@ voiceDescribe("classic start positions", () => {
 
 voiceIt("uses the matching colored home lane after the main track", () => {
   const board = createInitialState(4);
-  voiceExpect(board.players.map((p) => p.color)).toEqual(["red", "blue", "green", "yellow"]);
+  voiceExpect(board.players.map((p) => p.color)).toEqual(["red", "green", "yellow", "blue"]);
+});
+
+
+voiceDescribe("classic route geometry", () => {
+  voiceIt("starts red beside the top-left home and moves clockwise", () => {
+    const board = createInitialState(4);
+    const red = board.players[0];
+    voiceExpect(getTokenBoardPosition(red, 1)).toEqual({ x: 6, y: 1 });
+    voiceExpect(getTokenBoardPosition(red, 2)).toEqual({ x: 6, y: 2 });
+    voiceExpect(getTokenBoardPosition(red, 6)).toEqual({ x: 5, y: 6 });
+    voiceExpect(getTokenBoardPosition(red, 11)).toEqual({ x: 0, y: 7 });
+  });
+
+  voiceIt("places each color start beside its own corner", () => {
+    const board = createInitialState(4);
+    const positions = Object.fromEntries(
+      board.players.map((player) => [player.color, getTokenBoardPosition(player, 1)]),
+    );
+    voiceExpect(positions).toEqual({
+      red: { x: 6, y: 1 },
+      green: { x: 13, y: 6 },
+      yellow: { x: 8, y: 13 },
+      blue: { x: 1, y: 8 },
+    });
+  });
 });
