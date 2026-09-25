@@ -1,11 +1,11 @@
 import type { PlayerColor } from "@/lib/types";
 
 export const TOKENS_PER_PLAYER = 4;
-export const TRACK_LENGTH = 52;
+export const TRACK_LENGTH = 51;
 export const FINISH_STEPS = 58;
 export const ENTRY_ROLL = 6;
 
-export const PLAYER_COLORS: PlayerColor[] = ["red", "blue", "green", "yellow"];
+export const PLAYER_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
 
 export const COLOR_NAMES: Record<PlayerColor, string> = {
   red: "Red",
