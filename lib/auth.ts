@@ -39,6 +39,14 @@ export async function createUser(input: { username: string; email: string; passw
     "INSERT INTO users(username,email,password_hash) VALUES($1,$2,$3) RETURNING id,username,email,created_at",
     [username, email, passwordHash],
   );
+  await getDb().query(
+    "INSERT INTO profiles(user_id,display_name) VALUES($1,$2) ON CONFLICT(user_id) DO NOTHING",
+    [result.rows[0].id, username],
+  );
+  await getDb().query(
+    "INSERT INTO user_stats(user_id) VALUES($1) ON CONFLICT(user_id) DO NOTHING",
+    [result.rows[0].id],
+  );
   return result.rows[0];
 }
 
