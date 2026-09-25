@@ -54,6 +54,15 @@ export default function SocialHub() {
     catch(e){setMessage(e instanceof Error?e.message:"Unable to remove friend.");}
   }
 
+  async function block(userId:string) {
+    try {
+      const b=await json("/api/friends/"+userId,{method:"POST",body:JSON.stringify({})});
+      void b;
+      setMessage("Player blocked.");
+      await load();
+    } catch(e){setMessage(e instanceof Error?e.message:"Unable to block player.");}
+  }
+
   async function markAll() {
     await json("/api/notifications",{method:"POST",body:JSON.stringify({id:"all"})});
     await load();
@@ -73,7 +82,7 @@ export default function SocialHub() {
       </div>
     </section>
     <section className="grid gap-4 lg:grid-cols-2">
-      <div className="rounded-3xl border border-white/10 bg-white/[.06] p-5"><h2 className="text-xl font-black">Friends</h2><div className="mt-4 space-y-2">{friends.map(f=><div key={f.userId} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 p-3"><div><b>{f.displayName}</b><div className="text-xs text-slate-400">@{f.username} · {f.online?"Online":"Offline"}{f.inGame?" · In game":""}</div></div><button onClick={()=>remove(f.userId)} className="rounded-lg bg-white/10 px-3 py-2 text-sm">Remove</button></div>)}{!friends.length&&<p className="text-sm text-slate-500">No friends yet.</p>}</div></div>
+      <div className="rounded-3xl border border-white/10 bg-white/[.06] p-5"><h2 className="text-xl font-black">Friends</h2><div className="mt-4 space-y-2">{friends.map(f=><div key={f.userId} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 p-3"><div><b>{f.displayName}</b><div className="text-xs text-slate-400">@{f.username} · {f.online?"Online":"Offline"}{f.inGame?" · In game":""}</div></div><div className="flex gap-2"><button onClick={()=>remove(f.userId)} className="rounded-lg bg-white/10 px-3 py-2 text-sm">Remove</button><button onClick={()=>block(f.userId)} className="rounded-lg bg-red-400/10 px-3 py-2 text-sm text-red-200">Block</button></div></div>)}{!friends.length&&<p className="text-sm text-slate-500">No friends yet.</p>}</div></div>
       <div className="rounded-3xl border border-white/10 bg-white/[.06] p-5"><div className="flex items-center justify-between"><h2 className="text-xl font-black">Notifications</h2>{unread>0&&<button onClick={markAll} className="text-sm text-sky-300">Mark all read</button>}</div><div className="mt-4 space-y-2">{notifications.map(n=><div key={n.id} className={"rounded-2xl border border-white/10 p-3 "+(n.readAt?"bg-black/10":"bg-sky-400/10")}><b>{n.title}</b><div className="mt-1 text-sm text-slate-300">{n.body}</div></div>)}{!notifications.length&&<p className="text-sm text-slate-500">No notifications.</p>}</div></div>
     </section>
     {message&&<div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm text-amber-200">{message}</div>}
