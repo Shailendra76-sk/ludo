@@ -1,5 +1,7 @@
 export type PlayerColor = "red" | "blue" | "green" | "yellow";
 export type GameStatus = "waiting" | "playing" | "finished";
+export type GameMode = "classic" | "ai";
+export type BotDifficulty = "easy" | "medium" | "hard" | "expert";
 
 export type Token = {
   id: number;
@@ -13,10 +15,13 @@ export type Player = {
   color: PlayerColor;
   tokens: Token[];
   connected: boolean;
+  isBot?: boolean;
 };
 
 export type GameConfig = {
   playerCount: 2 | 3 | 4;
+  mode: GameMode;
+  botDifficulty: BotDifficulty;
   turnTimeSeconds: number;
   requireSixToStart: boolean;
   rollAgainOnSix: boolean;
