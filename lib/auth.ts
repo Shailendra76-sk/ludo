@@ -52,7 +52,7 @@ export async function createUser(input: { username: string; email: string; passw
 
 export async function authenticateUser(email: string, password: string) {
   const result = await getDb().query(
-    "SELECT id,username,email,password_hash FROM users WHERE email=$1 LIMIT 1",
+    "SELECT id,username,email,password_hash,role FROM users WHERE email=$1 LIMIT 1",
     [email.trim().toLowerCase()],
   );
   const user = result.rows[0];
@@ -74,7 +74,7 @@ export async function authenticateUser(email: string, password: string) {
     maxAge: SESSION_DAYS * 24 * 60 * 60,
   });
 
-  return { id: user.id, username: user.username, email: user.email };
+  return { id: user.id, username: user.username, email: user.email, role: user.role };
 }
 
 export async function getCurrentUser() {
@@ -83,7 +83,7 @@ export async function getCurrentUser() {
   if (!rawToken) return null;
 
   const result = await getDb().query(
-    "SELECT u.id,u.username,u.email FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() LIMIT 1",
+    "SELECT u.id,u.username,u.email,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() LIMIT 1",
     [hashValue(rawToken)],
   );
   return result.rows[0] ?? null;
@@ -94,4 +94,12 @@ export async function logoutUser() {
   const rawToken = store.get(SESSION_COOKIE)?.value;
   if (rawToken) await getDb().query("DELETE FROM sessions WHERE token_hash=$1", [hashValue(rawToken)]);
   store.delete(SESSION_COOKIE);
+}
+
+
+export async function requireAdmin() {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Authentication required.");
+  if (user.role !== "admin") throw new Error("Admin access required.");
+  return user;
 }
