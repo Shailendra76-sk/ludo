@@ -83,4 +83,20 @@ See docs/PHASE-4.md.
 
 See docs/PHASE-5.md.
 
+## Phase 6 — Profiles, statistics, leaderboard & history
+
+- Persistent player profiles and preferences
+- Persistent rating, XP, wins/losses and streak statistics
+- Immutable completed-game result records
+- Per-player result history
+- Achievement catalog storage
+- Profile API at /api/profile
+- Leaderboard API at /api/leaderboard
+- Personal history API at /api/history
+- Profile UI at /profile
+- Leaderboard UI at /leaderboard
+- Finished-game statistics are written atomically with the game transaction
+
+See docs/PHASE-6.md.
+
 Voice-command control remains intentionally deferred to a later phase as requested.
