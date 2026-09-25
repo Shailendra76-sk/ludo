@@ -1,14 +1,16 @@
 import { getDb } from "@/db/client";
+import type { PoolClient } from "pg";
 import type { GameState } from "@/lib/types";
 
 export async function recordFinishedGame(
   state: GameState,
   startedAt: Date,
   finishedAt: Date,
+  transactionClient?: PoolClient,
 ) {
   if (state.status !== "finished") return;
 
-  const db = getDb();
+  const db = transactionClient ?? getDb();
   const winner = state.players.find((player) => player.id === state.winnerId);
   const participants = state.players.filter((player) => player.userId && !player.isBot);
 
@@ -25,9 +27,10 @@ export async function recordFinishedGame(
     tokensFinished: player.tokens.filter((token) => token.steps >= 58).length,
   }));
 
-  const client = await db.connect();
+  const client = transactionClient ?? await db.connect();
+  const ownsTransaction = !transactionClient;
   try {
-    await client.query("BEGIN");
+    if (ownsTransaction) await client.query("BEGIN");
     await client.query(
       "INSERT INTO game_results(game_id,winner_user_id,started_at,finished_at,duration_seconds,mode,player_count,result) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
       [
@@ -59,12 +62,12 @@ export async function recordFinishedGame(
         [row.player.userId,row.won?1:0,row.won?0:1,row.tokensFinished,row.won,ratingDelta,xp],
       );
     }
-    await client.query("COMMIT");
+    if (ownsTransaction) await client.query("COMMIT");
   } catch (error) {
-    await client.query("ROLLBACK");
+    if (ownsTransaction) await client.query("ROLLBACK");
     throw error;
   } finally {
-    client.release();
+    if (ownsTransaction) client.release();
   }
 }
 
