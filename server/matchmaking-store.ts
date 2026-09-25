@@ -99,15 +99,25 @@ export async function queueForMatch(
       [state.id, JSON.stringify(config), JSON.stringify(state), state.stateVersion],
     );
 
-    const room = await client.query(
-      "INSERT INTO rooms(code,host_user_id,game_id,status,visibility,max_players) VALUES((SELECT upper(substr(encode(gen_random_bytes(8),'hex'),1,6)),$1,$2,'starting','public',$3) RETURNING id,code",
-      [identities[0].userId, state.id, playerCount],
-    );
+    let roomRow: { id: string; code: string } | null = null;
+    for (let attempt = 0; attempt < 10 && !roomRow; attempt += 1) {
+      const code = Array.from({ length: 6 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[randomInt(0, 32)]).join("");
+      try {
+        const room = await client.query(
+          "INSERT INTO rooms(code,host_user_id,game_id,status,visibility,max_players) VALUES($1,$2,$3,'starting','public',$4) RETURNING id,code",
+          [code, identities[0].userId, state.id, playerCount],
+        );
+        roomRow = roomRow as { id: string; code: string };
+      } catch (error) {
+        if (!(error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "23505")) throw error;
+      }
+    }
+    if (!roomRow) throw new Error("Unable to allocate a public match room.");
 
     for (let index = 0; index < identities.length; index += 1) {
       await client.query(
         "INSERT INTO room_players(room_id,user_id,player_slot,ready) VALUES($1,$2,$3,true)",
-        [room.rows[0].id, identities[index].userId, index],
+        [roomRow.id, identities[index].userId, index],
       );
     }
 
@@ -121,7 +131,7 @@ export async function queueForMatch(
     await publishRealtimeEvent({
       kind: "matchmaking",
       type: "MATCH_FOUND",
-      roomId: room.rows[0].id,
+      roomId: roomRow.id,
       gameId: state.id,
       playerCount,
     });
@@ -129,7 +139,7 @@ export async function queueForMatch(
     const ownTicket = group.find((row) => row.user_id === userId);
     return {
       ticket: ownTicket ? mapTicket(ownTicket) : null,
-      roomId: room.rows[0].id as string,
+      roomId: roomRow.id as string,
       gameId: state.id as string,
     };
   } catch (error) {
