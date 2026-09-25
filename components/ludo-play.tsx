@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import LudoBoard from "@/components/ludo-board";
-import LudoPlayerDock from "@/components/ludo-player-dock";
+import LudoGameBar from "@/components/ludo-game-bar";
 import { applyDice, createInitialState, getCurrentPlayer, getLegalMoves, moveToken } from "@/game-engine/ludo-engine";
 import { secureLocalDice } from "@/lib/random";
 import type { GameState } from "@/lib/types";
@@ -52,12 +52,11 @@ export default function LudoPlay() {
           <LudoBoard state={state} playerId={current.id} legalMoves={legalMoves} onToken={selectToken} />
         </section>
 
-        <LudoPlayerDock
+        <LudoGameBar
           state={state}
+          players={state.players}
           playerId={current.id}
-          legalMoves={legalMoves}
           onRoll={roll}
-          onToken={selectToken}
           local
         />
 
