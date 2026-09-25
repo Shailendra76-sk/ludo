@@ -140,9 +140,6 @@ See docs/PHASE-8.md.
 
 See docs/PHASE-9.md and docs/SECURITY-CHECKLIST.md.
 
-Voice-command control remains intentionally deferred to a later phase as requested.
-
-
 ## Phase 10 — Voice + AI command control
 
 - Browser voice input for Hindi/English Ludo commands
