@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { jsonError, requireJsonObject } from "@/lib/http";
+import { clientAddress, jsonError, rateLimit, requireJsonObject } from "@/lib/http";
 import { listChatMessages, sendChatMessage } from "@/server/chat-store";
 
 export const runtime = "nodejs";
@@ -20,6 +20,7 @@ export async function POST(request: Request, context: { params: Promise<{ roomId
   const user = await getCurrentUser();
   if (!user) return jsonError("Authentication required.", 401);
   try {
+    if (!rateLimit("chat:" + clientAddress(request), 60, 60_000)) return jsonError("Too many chat requests. Try again later.", 429);
     const body = requireJsonObject(await request.json());
     const { roomId } = await context.params;
     const message = await sendChatMessage(roomId, user.id, String(body.body ?? ""));
