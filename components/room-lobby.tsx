@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLudoRealtime } from "@/hooks/use-ludo-realtime";
 import type { Room, RoomPlayer } from "@/lib/types";
 
 type Props = {
@@ -88,12 +89,20 @@ export default function RoomLobby({ initialRoomId }: Props) {
     }).catch(() => undefined);
   }, []);
 
+  const { status: realtimeStatus } = useLudoRealtime({
+    roomId,
+    onEvent: () => {
+      void refresh(roomId);
+    },
+  });
+
   useEffect(() => {
     if (!roomId) return;
-    const id = window.setInterval(() => refresh(roomId), 2000);
-    refresh(roomId);
+    void refresh(roomId);
+    if (realtimeStatus === "connected") return;
+    const id = window.setInterval(() => refresh(roomId), 3000);
     return () => window.clearInterval(id);
-  }, [roomId]);
+  }, [roomId, realtimeStatus]);
 
   const me = data?.players.find((p) => p.userId === currentUserId);
   const meIsReady = me?.ready ?? false;
@@ -104,7 +113,7 @@ export default function RoomLobby({ initialRoomId }: Props) {
         <header className="rounded-3xl border border-white/10 bg-white/[.06] p-6 backdrop-blur-xl">
           <p className="text-xs font-bold uppercase tracking-[.3em] text-sky-300">Ludo Play • Rooms</p>
           <h1 className="mt-2 text-3xl font-black">Create or Join a Room</h1>
-          <p className="mt-1 text-sm text-slate-400">Phase 4 lobby foundation. Realtime transport is added in the dedicated multiplayer phase.</p>
+          <p className="mt-1 text-sm text-slate-400">Realtime room lobby with automatic reconnect.</p>
         </header>
 
         <section className="grid gap-4 sm:grid-cols-2">
@@ -130,6 +139,9 @@ export default function RoomLobby({ initialRoomId }: Props) {
         {data && (
           <section className="rounded-3xl border border-white/10 bg-white/[.06] p-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-bold uppercase tracking-wider">
+                Realtime: {realtimeStatus}
+              </div>
               <div>
                 <div className="text-sm text-slate-400">Room code</div>
                 <div className="mt-1 text-3xl font-black tracking-[.25em]">{data.room.code}</div>
