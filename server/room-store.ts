@@ -2,6 +2,7 @@ import { getDb } from "@/db/client";
 import { createInitialState } from "@/game-engine/ludo-engine";
 import type { GameConfig, Room, RoomPlayer, RoomVisibility } from "@/lib/types";
 import { randomInt } from "node:crypto";
+import { publishRealtimeEvent } from "@/server/realtime-pubsub";
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -53,6 +54,12 @@ export async function createRoom(
       [roomResult.rows[0].id, userId],
     );
     await client.query("COMMIT");
+    await publishRealtimeEvent({
+      kind: "room",
+      type: "ROOM_CREATED",
+      roomId: roomResult.rows[0].id,
+      gameId: state.id,
+    });
     return mapRoom(roomResult.rows[0]);
   } catch (error) {
     await client.query("ROLLBACK");
@@ -161,6 +168,13 @@ export async function joinRoom(roomCode: string, userId: string) {
       [room.game_id, JSON.stringify(state), state.stateVersion],
     );
     await client.query("COMMIT");
+    await publishRealtimeEvent({
+      kind: "room",
+      type: "PLAYER_JOINED",
+      roomId: room.id,
+      gameId: room.game_id,
+      stateVersion: state.stateVersion,
+    });
     return room.id as string;
   } catch (error) {
     await client.query("ROLLBACK");
@@ -176,6 +190,7 @@ export async function setReady(roomId: string, userId: string, ready: boolean) {
     [roomId, userId, ready],
   );
   if (!result.rowCount) throw new Error("You are not in this room.");
+  await publishRealtimeEvent({ kind: "room", type: "PLAYER_READY", roomId, ready });
 }
 
 export async function startRoom(roomId: string, userId: string) {
@@ -219,6 +234,13 @@ export async function startRoom(roomId: string, userId: string) {
     );
     await client.query("UPDATE rooms SET status='starting',updated_at=now() WHERE id=$1", [roomId]);
     await client.query("COMMIT");
+    await publishRealtimeEvent({
+      kind: "room",
+      type: "GAME_STARTED",
+      roomId,
+      gameId: room.game_id,
+      stateVersion: state.stateVersion,
+    });
     return state;
   } catch (error) {
     await client.query("ROLLBACK");
@@ -259,6 +281,7 @@ export async function leaveRoom(roomId: string, userId: string) {
       }
     }
     await client.query("COMMIT");
+    await publishRealtimeEvent({ kind: "room", type: "PLAYER_LEFT", roomId });
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
