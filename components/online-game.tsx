@@ -122,7 +122,7 @@ export default function OnlineGame({ gameId }: { gameId: string }) {
                 player={state.players.find((player) => player.color === "red")!}
                 state={state}
                 isCurrent={state.players.find((player) => player.color === "red")!.id === current.id}
-                isMine={state.players[1].userId === userId}
+                isMine={state.players.find((player) => player.color === "red")?.userId === userId}
                 onRoll={roll}
               />
             ) : null
@@ -133,7 +133,7 @@ export default function OnlineGame({ gameId }: { gameId: string }) {
                 player={state.players.find((player) => player.color === "green")!}
                 state={state}
                 isCurrent={state.players.find((player) => player.color === "green")!.id === current.id}
-                isMine={state.players[2].userId === userId}
+                isMine={state.players.find((player) => player.color === "green")?.userId === userId}
                 onRoll={roll}
               />
             ) : null
@@ -144,7 +144,7 @@ export default function OnlineGame({ gameId }: { gameId: string }) {
                 player={state.players.find((player) => player.color === "blue")!}
                 state={state}
                 isCurrent={state.players.find((player) => player.color === "blue")!.id === current.id}
-                isMine={state.players[0].userId === userId}
+                isMine={state.players.find((player) => player.color === "blue")?.userId === userId}
                 onRoll={roll}
               />
             ) : null
@@ -155,7 +155,7 @@ export default function OnlineGame({ gameId }: { gameId: string }) {
                 player={state.players.find((player) => player.color === "yellow")!}
                 state={state}
                 isCurrent={state.players.find((player) => player.color === "yellow")!.id === current.id}
-                isMine={state.players[3].userId === userId}
+                isMine={state.players.find((player) => player.color === "yellow")?.userId === userId}
                 onRoll={roll}
               />
             ) : null
