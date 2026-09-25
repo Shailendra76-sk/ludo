@@ -146,10 +146,10 @@ describe("Classic Ludo movement rules", () => {
       state.players.map((player) => [player.color, getTokenBoardPosition(player, 1)]),
     );
     expect(positions).toEqual({
-      red: { x: 6, y: 1 },
-      green: { x: 1, y: 8 },
-      yellow: { x: 8, y: 13 },
-      blue: { x: 13, y: 6 },
+      red: { x: 1, y: 6 },
+      green: { x: 8, y: 1 },
+      yellow: { x: 13, y: 8 },
+      blue: { x: 6, y: 13 },
     });
   });
 
@@ -179,9 +179,9 @@ describe("Classic Ludo movement rules", () => {
   it("enters the colored home lane after completing the shared circuit", () => {
     const state = createInitialState(4);
     const red = state.players[0];
-    expect(getTokenBoardPosition(red, 52)).toEqual({ x: 7, y: 1 });
-    expect(getTokenBoardPosition(red, 53)).toEqual({ x: 7, y: 2 });
-    expect(getTokenBoardPosition(red, 57)).toEqual({ x: 7, y: 6 });
+    expect(getTokenBoardPosition(red, 52)).toEqual({ x: 1, y: 7 });
+    expect(getTokenBoardPosition(red, 53)).toEqual({ x: 2, y: 7 });
+    expect(getTokenBoardPosition(red, 57)).toEqual({ x: 6, y: 7 });
     expect(getTokenBoardPosition(red, 58)).toEqual({ x: 7, y: 7 });
   });
 
