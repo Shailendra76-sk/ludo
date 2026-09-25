@@ -6,6 +6,7 @@ import { COLOR_NAMES, FINISH_STEPS } from "@/game-engine/constants";
 import { getCurrentPlayer, getLegalMoves, globalTrackIndex } from "@/game-engine/ludo-engine";
 import { useLudoRealtime } from "@/hooks/use-ludo-realtime";
 import ChatPanel from "@/components/chat-panel";
+import VoiceCommand from "@/components/voice-command";
 import type { GameState, PlayerColor } from "@/lib/types";
 
 const DOT: Record<PlayerColor, string> = {
@@ -248,6 +249,8 @@ export default function OnlineGame({ gameId }: { gameId: string }) {
                 </div>
               ))}
             </div>
+
+            <VoiceCommand gameId={gameId} state={state} enabled={Boolean(myTurn)} onGame={setState} />
 
             {roomId && <ChatPanel roomId={roomId} />}
 
