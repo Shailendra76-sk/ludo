@@ -75,6 +75,9 @@ export async function queueForMatch(
       turnTimeSeconds: 15,
       requireSixToStart: true,
       rollAgainOnSix: true,
+      rollAgainOnCapture: true,
+      rollAgainOnHome: true,
+      threeSixPenalty: true,
       ...configOverrides,
     };
 
