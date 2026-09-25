@@ -2,6 +2,8 @@ export type PlayerColor = "red" | "blue" | "green" | "yellow";
 export type GameStatus = "waiting" | "playing" | "finished";
 export type GameMode = "classic" | "ai";
 export type BotDifficulty = "easy" | "medium" | "hard" | "expert";
+export type RoomVisibility = "private" | "public";
+export type RoomStatus = "lobby" | "starting" | "closed";
 
 export type Token = {
   id: number;
@@ -38,4 +40,25 @@ export type GameState = {
   winnerId: number | null;
   message: string;
   stateVersion: number;
+};
+
+
+export type Room = {
+  id: string;
+  code: string;
+  hostUserId: string;
+  status: RoomStatus;
+  visibility: RoomVisibility;
+  maxPlayers: 2 | 3 | 4;
+  gameId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RoomPlayer = {
+  roomId: string;
+  userId: string;
+  playerSlot: number;
+  username: string;
+  ready: boolean;
 };
