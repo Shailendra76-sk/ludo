@@ -76,9 +76,10 @@ export default function RoomLobby({ initialRoomId }: Props) {
   async function start() {
     setBusy(true);
     try {
-      await requestJson("/api/rooms/" + roomId + "/start", { method: "POST" });
+      const body = await requestJson("/api/rooms/" + roomId + "/start", { method: "POST" });
       await refresh();
       setMessage("Game started.");
+      if (body.game?.id) window.location.href = "/play/" + body.game.id;
     } catch (e) { setMessage(e instanceof Error ? e.message : "Unable to start game."); }
     finally { setBusy(false); }
   }
@@ -168,7 +169,16 @@ export default function RoomLobby({ initialRoomId }: Props) {
               )}
             </div>
 
-            {data.game && <p className="mt-4 text-sm text-slate-400">Game state version: {data.game.state.stateVersion} • {data.game.state.message}</p>}
+            {data.game && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-slate-400">Game state version: {data.game.state.stateVersion} • {data.game.state.message}</p>
+                {data.game.state.status === "playing" && (
+                  <a href={"/play/" + data.room.gameId} className="rounded-xl bg-sky-400 px-4 py-2 text-sm font-black text-slate-950">
+                    Open Game
+                  </a>
+                )}
+              </div>
+            )}
           </section>
         )}
 
