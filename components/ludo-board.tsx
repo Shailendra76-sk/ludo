@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { CENTER, HOME_LANES, TRACK } from "@/game-engine/board";
+import { CENTER, HOME_LANES, START_POSITIONS, TRACK } from "@/game-engine/board";
 import { FINISH_STEPS, SAFE_TRACK_INDEXES } from "@/game-engine/constants";
-import { globalTrackIndex } from "@/game-engine/ludo-engine";
+import { getTokenBoardPosition, globalTrackIndex } from "@/game-engine/ludo-engine";
 import type { GameState, PlayerColor } from "@/lib/types";
 
 type Palette = {
@@ -92,15 +92,14 @@ export default function LudoBoard({
           add(7, 7, { playerId: player.id, tokenId: token.id, finished: true, color: player.color });
           continue;
         }
-        const trackIndex = globalTrackIndex(player, token.steps);
-        if (trackIndex !== null) {
-          const cell = TRACK[trackIndex];
-          add(cell.x, cell.y, { playerId: player.id, tokenId: token.id, finished: false, color: player.color });
-          continue;
-        }
-        if (token.steps >= 53) {
-          const lane = HOME_LANES[player.color][Math.min(5, token.steps - 53)];
-          if (lane) add(lane.x, lane.y, { playerId: player.id, tokenId: token.id, finished: false, color: player.color });
+        const position = getTokenBoardPosition(player, token.steps);
+        if (position) {
+          add(position.x, position.y, {
+            playerId: player.id,
+            tokenId: token.id,
+            finished: token.steps >= FINISH_STEPS,
+            color: player.color,
+          });
         }
       }
     }
@@ -121,11 +120,9 @@ export default function LudoBoard({
             const items = tokenCells.get(index) ?? [];
             const isBaseSpot = home ? BASE_SPOTS[home].some((spot) => spot.x === x && spot.y === y) : false;
             const safe = trackIndex >= 0 && isSafeTrack(trackIndex);
-            const startColor =
-              trackIndex === 0 ? "red" :
-              trackIndex === 13 ? "blue" :
-              trackIndex === 26 ? "yellow" :
-              trackIndex === 39 ? "green" : null;
+            const startColor = (Object.keys(START_POSITIONS) as PlayerColor[]).find(
+              (color) => START_POSITIONS[color].x === x && START_POSITIONS[color].y === y,
+            ) ?? null;
 
             return (
               <div
