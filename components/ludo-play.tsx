@@ -50,45 +50,45 @@ export default function LudoPlay() {
         </header>
 
         <LudoTableLayout
-          topLeft={
-            state.players[1] ? (
+          red={
+            state.players.find((player) => player.color === "red") ? (
               <LudoPlayerDice
-                player={state.players[1]}
+                player={state.players.find((player) => player.color === "red")!}
                 state={state}
-                isCurrent={state.players[1].id === current.id}
+                isCurrent={state.players.find((player) => player.color === "red")!.id === current.id}
                 isMine
                 onRoll={roll}
               />
             ) : null
           }
-          topRight={
-            state.players[2] ? (
+          green={
+            state.players.find((player) => player.color === "green") ? (
               <LudoPlayerDice
-                player={state.players[2]}
+                player={state.players.find((player) => player.color === "green")!}
                 state={state}
-                isCurrent={state.players[2].id === current.id}
+                isCurrent={state.players.find((player) => player.color === "green")!.id === current.id}
                 isMine
                 onRoll={roll}
               />
             ) : null
           }
-          bottomLeft={
-            state.players[0] ? (
+          blue={
+            state.players.find((player) => player.color === "blue") ? (
               <LudoPlayerDice
-                player={state.players[0]}
+                player={state.players.find((player) => player.color === "blue")!}
                 state={state}
-                isCurrent={state.players[0].id === current.id}
+                isCurrent={state.players.find((player) => player.color === "blue")!.id === current.id}
                 isMine
                 onRoll={roll}
               />
             ) : null
           }
-          bottomRight={
-            state.players[3] ? (
+          yellow={
+            state.players.find((player) => player.color === "yellow") ? (
               <LudoPlayerDice
-                player={state.players[3]}
+                player={state.players.find((player) => player.color === "yellow")!}
                 state={state}
-                isCurrent={state.players[3].id === current.id}
+                isCurrent={state.players.find((player) => player.color === "yellow")!.id === current.id}
                 isMine
                 onRoll={roll}
               />
