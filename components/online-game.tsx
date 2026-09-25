@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import LudoBoard from "@/components/ludo-board";
-import LudoPlayerDock from "@/components/ludo-player-dock";
+import LudoGameBar from "@/components/ludo-game-bar";
 import { getCurrentPlayer, getLegalMoves } from "@/game-engine/ludo-engine";
 import { useLudoRealtime } from "@/hooks/use-ludo-realtime";
 import ChatPanel from "@/components/chat-panel";
@@ -123,13 +123,12 @@ export default function OnlineGame({ gameId }: { gameId: string }) {
           />
         </section>
 
-        <LudoPlayerDock
+        <LudoGameBar
           state={state}
+          players={state.players}
           userId={userId}
           playerId={myPlayerId}
-          legalMoves={legalMoves}
           onRoll={roll}
-          onToken={move}
         />
 
         {error && <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-3 text-sm text-amber-200">{error}</div>}
