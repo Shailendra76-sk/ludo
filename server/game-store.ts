@@ -107,5 +107,8 @@ export function validateConfig(value: unknown): GameConfig {
     turnTimeSeconds: Math.max(5, Math.min(60, Number(input.turnTimeSeconds ?? 15))),
     requireSixToStart: input.requireSixToStart !== false,
     rollAgainOnSix: input.rollAgainOnSix !== false,
+    rollAgainOnCapture: input.rollAgainOnCapture !== false,
+    rollAgainOnHome: input.rollAgainOnHome !== false,
+    threeSixPenalty: input.threeSixPenalty !== false,
   };
 }
