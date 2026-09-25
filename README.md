@@ -18,6 +18,18 @@ Phase 1 of the Advanced Ludo Platform.
 - Responsive playable board
 - Unit test foundation
 
+## Phase 2 backend
+
+- PostgreSQL persistence schema
+- Secure password hashing and session cookies
+- Auth API
+- Server-authoritative game API
+- Transactional, idempotent game actions
+- Server-side dice generation
+- Health endpoint
+
+See docs/PHASE-2.md.
+
 ## Architecture
 
 The game rules are isolated under game-engine/ and do not depend on React.
