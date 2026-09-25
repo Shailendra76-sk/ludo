@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyDice, createInitialState, getLegalMoves, moveToken } from "@/game-engine/ludo-engine";
+import { chooseBotToken } from "@/server/bot-ai";
 
 describe("Ludo engine foundation", () => {
   it("creates the requested player count with four tokens each", () => {
@@ -33,5 +34,19 @@ describe("Ludo engine foundation", () => {
     state = applyDice(state, 3);
     state = moveToken(state, 0);
     expect(state.currentPlayerIndex).toBe(2);
+  });
+});
+
+
+describe("Bot decision foundation", () => {
+  it("only chooses a legal token", () => {
+    let state = createInitialState(4, { mode: "ai", botDifficulty: "hard" });
+    state = applyDice(state, 6);
+    expect(getLegalMoves(state)).toContain(chooseBotToken(state));
+  });
+
+  it("does not choose a move when no legal move exists", () => {
+    const state = applyDice(createInitialState(4, { mode: "ai" }), 5);
+    expect(chooseBotToken(state)).toBeNull();
   });
 });
