@@ -13,11 +13,11 @@ const COLORS: Record<PlayerColor, { cell: string; ring: string; text: string }> 
   yellow: { cell: "bg-amber-400", ring: "ring-amber-100", text: "text-amber-700" },
 };
 
-const HOME_ZONES: Record<PlayerColor, { x0: number; y0: number; className: string }> = {
-  red: { x0: 0, y0: 0, className: "bg-red-50" },
-  blue: { x0: 10, y0: 0, className: "bg-blue-50" },
-  green: { x0: 10, y0: 10, className: "bg-emerald-50" },
-  yellow: { x0: 0, y0: 10, className: "bg-amber-50" },
+const HOME_ZONES: Record<PlayerColor, { x0: number; y0: number; className: string; title: string }> = {
+  red: { x0: 0, y0: 0, className: "bg-red-50", title: "Red" },
+  blue: { x0: 10, y0: 0, className: "bg-blue-50", title: "Blue" },
+  green: { x0: 10, y0: 10, className: "bg-emerald-50", title: "Green" },
+  yellow: { x0: 0, y0: 10, className: "bg-amber-50", title: "Yellow" },
 };
 
 function cx(...items: Array<string | false | null | undefined>) {
@@ -87,6 +87,10 @@ export default function LudoBoard({
     return result;
   }, [state]);
 
+  const playerTokens = state.players.flatMap((player) =>
+    player.tokens.map((token) => ({ player, token })),
+  );
+
   return (
     <div className="mx-auto w-full max-w-[760px] overflow-hidden rounded-[28px] border-[5px] border-slate-900 bg-white shadow-2xl">
       <div className="relative grid aspect-square grid-cols-15 grid-rows-15">
@@ -113,8 +117,8 @@ export default function LudoBoard({
                 center ? "bg-gradient-to-br from-fuchsia-500 via-sky-500 to-emerald-500" : "",
               )}
             >
-              {zone && x % 2 === 0 && y % 2 === 0 && (
-                <span className={cx("absolute inset-1 rounded-xl border-2 border-white/90 shadow-inner", COLORS[zone].cell, "opacity-90")} />
+              {zone && x === HOME_ZONES[zone].x0 + 2 && y === HOME_ZONES[zone].y0 + 2 && (
+                <div className={cx("absolute inset-1 rounded-[24px] border-4 border-white/80 shadow-inner", COLORS[zone].cell, "opacity-95")}><div className="absolute inset-[10%] rounded-full bg-white/95" /></div>
               )}
 
               {trackIndex >= 0 && (
@@ -123,8 +127,8 @@ export default function LudoBoard({
                 </span>
               )}
 
-              {owner && !center && <span className="h-4 w-4 rounded-full bg-white shadow sm:h-5 sm:w-5" />}
-              {center && <span className="text-lg font-black text-white drop-shadow sm:text-4xl">🏠</span>}
+              {owner && !center && <span className={cx("grid h-6 w-6 place-items-center rounded-full border-2 border-white/70 shadow-sm sm:h-7 sm:w-7", COLORS[owner].cell)}>{trackIndex + 1}</span>}
+              {center && <div className="relative grid h-full w-full place-items-center"><div className="absolute inset-1 rotate-45 bg-red-500" /><div className="absolute inset-1 rotate-[135deg] bg-blue-500" /><span className="relative z-10 text-3xl font-black text-white drop-shadow sm:text-5xl">★</span></div>}
 
               {items.length > 0 && (
                 <div className="relative z-10 flex flex-wrap justify-center gap-0.5">
@@ -155,6 +159,14 @@ export default function LudoBoard({
             </div>
           );
         })}
+      </div>
+      <div className="grid grid-cols-4 gap-2 bg-slate-50 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-600 sm:text-xs">
+        {(Object.keys(HOME_ZONES) as PlayerColor[]).map((color) => (
+          <div key={color} className="flex items-center justify-center gap-2">
+            <span className={cx("h-3 w-3 rounded-full", COLORS[color].cell)} />
+            {HOME_ZONES[color].title}
+          </div>
+        ))}
       </div>
     </div>
   );
