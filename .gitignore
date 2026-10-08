@@ -1,8 +1,5 @@
-node_modules
-.next
+node_modules/
+storage/tmp/*
+!.gitkeep
 .env
-.env.local
-.env.*.local
-coverage
-dist
-*.log
+.DS_Store
