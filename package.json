@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --check server.js && node --check public/app.js && node --check public/shopkeeper.js",
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
@@ -14,6 +14,7 @@
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "multer": "^2.4.0"
+    "multer": "^2.4.0",
+    "qrcode": "^1.5.4"
   }
 }

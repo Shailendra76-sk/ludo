@@ -1,11 +1,11 @@
-# Printer Auto — Phase 1 Customer Side
+# Printer Auto — Phase 1 + Phase 2
 
-A plain-local, mobile-first QR printing customer flow. It intentionally does **not** include shopkeeper or Super Admin UI.
+A plain-local, mobile-first QR printing customer flow plus a secure, shop-scoped Shopkeeper panel. Super Admin is intentionally not included.
 
 ## Run
 
 ```bash
-cd /home/ubuntu/printer-auto
+cd /home/ubuntu/ludo
 npm start
 ```
 
@@ -13,6 +13,9 @@ Open:
 
 - `http://localhost:8787/print/shop/demo-shop`
 - `http://localhost:8787/print/shop/paperlane-central`
+- `http://localhost:8787/shopkeeper/login`
+
+Local demo Shopkeeper login: `demo@printerauto.local` / `demo1234`.
 
 ## Current working behavior
 
@@ -24,6 +27,18 @@ Open:
 - Online order creation as `PAYMENT_PENDING`; no fake payment success and no unpaid print release
 - Five-minute cleanup worker for abandoned temporary files
 - Mock print connector interface guarded by verified payment state
+
+## Phase 2 Shopkeeper features
+
+- Password-hashed login with an opaque httpOnly server session
+- Shop-isolated dashboard, orders and cash collection
+- Cash `CASH_PENDING` → `PAID` → print queue transition with duplicate protection
+- Printer add/remove/default/test actions through a mock connector boundary
+- Backend pricing with B&W, color, minimum order and service charge
+- Shop profile/settings, unique QR download/print, reports and CSV export
+- Activity logging for login, logout, pricing, printer, cash and settings actions
+
+Every protected API resolves `shopId` from the authenticated server session; the browser cannot select another shop.
 
 ## Production hand-off points
 
