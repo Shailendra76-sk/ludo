@@ -2,5 +2,6 @@ node_modules/
 storage/tmp/*
 !.gitkeep
 storage/phase2-data.json
+storage/phase3-data.json
 .env
 .DS_Store

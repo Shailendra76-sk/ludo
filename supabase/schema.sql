@@ -1,0 +1,27 @@
+-- Printer Auto Phase 3 production schema. Apply through Supabase SQL editor or migrations.
+create extension if not exists pgcrypto;
+create type public.shop_status as enum ('ACTIVE','SUSPENDED','EXPIRED');
+create type public.user_role as enum ('SHOPKEEPER','SUPER_ADMIN');
+create type public.subscription_status as enum ('ACTIVE','TRIAL','EXPIRED','CANCELLED','PAYMENT_PENDING');
+create type public.payment_status as enum ('PENDING','PAID','FAILED','REFUNDED');
+
+create table if not exists public.shops (id text primary key, name text not null, owner_name text, mobile text, email text, address text, status public.shop_status not null default 'ACTIVE', created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+create table if not exists public.shop_users (id text primary key, shop_id text references public.shops(id), name text, email text unique not null, password_hash text not null, role public.user_role not null default 'SHOPKEEPER', status text not null default 'ACTIVE', last_login timestamptz, created_at timestamptz not null default now());
+create table if not exists public.plans (id text primary key, name text not null, price numeric(12,2) not null, duration text not null, features jsonb not null default '[]', status text not null default 'ACTIVE', created_at timestamptz not null default now());
+create table if not exists public.subscriptions (id text primary key, shop_id text not null references public.shops(id), plan_id text not null references public.plans(id), status public.subscription_status not null, start_date timestamptz not null, end_date timestamptz not null, amount numeric(12,2) not null default 0, payment_status public.payment_status not null default 'PENDING', created_at timestamptz not null default now());
+create table if not exists public.orders (id text primary key, shop_id text not null references public.shops(id), file_reference text, pages integer not null default 1, copies integer not null default 1, print_type text not null, amount numeric(12,2) not null, payment_status public.payment_status not null default 'PENDING', print_status text not null, created_at timestamptz not null default now());
+create table if not exists public.payments (id text primary key, shop_id text references public.shops(id), order_id text references public.orders(id), subscription_id text references public.subscriptions(id), method text not null, amount numeric(12,2) not null, status public.payment_status not null, gateway_reference text, created_at timestamptz not null default now());
+create table if not exists public.printers (id text primary key, shop_id text not null references public.shops(id), name text not null, status text not null, connector_id text, last_heartbeat timestamptz, created_at timestamptz not null default now());
+create table if not exists public.pricing (id text primary key, shop_id text unique not null references public.shops(id), bw_price numeric(12,2) not null, color_price numeric(12,2) not null, minimum_order numeric(12,2) not null default 0, service_charge numeric(12,2) not null default 0, updated_at timestamptz not null default now());
+create table if not exists public.activity_logs (id text primary key, shop_id text, user_id text, action text not null, metadata jsonb not null default '{}', created_at timestamptz not null default now());
+create table if not exists public.health_checks (id bigserial primary key, component text not null, status text not null, response_time numeric, error text, checked_at timestamptz not null default now());
+create table if not exists public.ai_audit_logs (id text primary key, admin_id text not null, request text not null, action text, confirmation text, result text, created_at timestamptz not null default now());
+
+alter table public.shops enable row level security; alter table public.shop_users enable row level security; alter table public.orders enable row level security; alter table public.payments enable row level security; alter table public.printers enable row level security; alter table public.activity_logs enable row level security;
+create or replace function public.current_shop_id() returns text language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::json->'app_metadata'->>'shop_id','') $$;
+create policy "shopkeepers read own orders" on public.orders for select using (shop_id = public.current_shop_id());
+create policy "shopkeepers read own printers" on public.printers for select using (shop_id = public.current_shop_id());
+create policy "shopkeepers read own payments" on public.payments for select using (shop_id = public.current_shop_id());
+create policy "shopkeepers read own logs" on public.activity_logs for select using (shop_id = public.current_shop_id());
+create policy "public reads active shop summary" on public.shops for select using (status = 'ACTIVE');
+-- SUPER_ADMIN access uses a backend service role or a dedicated claim policy; service-role keys never reach the frontend.

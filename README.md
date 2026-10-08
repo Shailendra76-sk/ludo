@@ -1,6 +1,6 @@
-# Printer Auto — Phase 1 + Phase 2
+# Printer Auto — Phase 1 + Phase 2 + Phase 3
 
-A plain-local, mobile-first QR printing customer flow plus a secure, shop-scoped Shopkeeper panel. Super Admin is intentionally not included.
+A plain-local, mobile-first QR printing customer flow, secure Shopkeeper panel, and Super Admin platform control plane. Phase 4 is intentionally not included.
 
 ## Run
 
@@ -14,8 +14,10 @@ Open:
 - `http://localhost:8787/print/shop/demo-shop`
 - `http://localhost:8787/print/shop/paperlane-central`
 - `http://localhost:8787/shopkeeper/login`
+- `http://localhost:8787/superadmin/login`
 
 Local demo Shopkeeper login: `demo@printerauto.local` / `demo1234`.
+Local demo Super Admin login: `admin@printerauto.local` / `Admin123!`.
 
 ## Current working behavior
 
@@ -39,6 +41,21 @@ Local demo Shopkeeper login: `demo@printerauto.local` / `demo1234`.
 - Activity logging for login, logout, pricing, printer, cash and settings actions
 
 Every protected API resolves `shopId` from the authenticated server session; the browser cannot select another shop.
+
+## Phase 3 Super Admin features
+
+Super Admin has a separate role/session boundary and control-plane navigation for Dashboard, Shops, Shopkeepers, Subscriptions, Payments, Revenue, Orders, Printers, System Health, AI Assistant, Reports, Audit Logs and Settings. Shop suspension blocks new customer orders and Shopkeeper login without deleting existing data. Subscription plans are data-backed, expiry is checked automatically, platform subscription revenue is tracked separately from shop print revenue, and CSV exports are available for revenue and platform reports.
+
+The AI assistant is a restricted server-side query layer. It can read summarized dashboard/shop/order/revenue/health data, cannot access customer files or unrestricted database records, and must receive `confirm: true` for allowlisted changes such as shop suspend/activate. Every AI proposal/action is audited. Maintenance mode shows a service-unavailable response to customers while leaving existing jobs untouched.
+
+## Supabase setup
+
+Apply [`supabase/schema.sql`](./supabase/schema.sql) to a Supabase project, then keep `SUPABASE_SERVICE_ROLE_KEY` server-only. The local migration utility is idempotent and supports a dry run:
+
+```bash
+node scripts/migrate-local-to-supabase.js
+SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/migrate-local-to-supabase.js
+```
 
 ## Production hand-off points
 

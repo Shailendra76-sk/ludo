@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "node --check server.js && node --check public/app.js && node --check public/shopkeeper.js",
+    "test": "node --check server.js && node --check phase3.js && node --check public/app.js && node --check public/shopkeeper.js && node --check public/superadmin.js",
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
