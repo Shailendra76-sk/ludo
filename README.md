@@ -57,6 +57,16 @@ node scripts/migrate-local-to-supabase.js
 SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/migrate-local-to-supabase.js
 ```
 
+## Phase 4 production integration
+
+- `phase4.js` provides a common payment abstraction with Cashfree and Razorpay adapters. Shopkeepers can start official onboarding only when matching server credentials are configured; no secret key is collected in the browser and no fake connection is created.
+- Customer online orders use the shop’s connected provider through `POST /api/orders/:orderId/payment-session`. Webhooks use the captured raw body, HMAC signature verification, amount matching and event idempotency. Only verified `PAID` events call the print queue. Cash collection remains `CASH_PENDING → PAID → PRINT_QUEUED`.
+- The secure connector API supports one-time pairing, hashed bearer tokens, shop-scoped jobs, outbound polling, heartbeat, private authenticated file streaming and idempotent completion. The Python agent is at [`connector/agent.py`](./connector/agent.py); it never exposes a local printer to the internet.
+- Uploads are limited to 250 MB in the browser and backend, while PDF/JPG/PNG MIME and content signatures remain required. Temporary files remain private. The existing cleanup worker retains completed files for approximately five minutes; production object-storage cleanup should use `file_cleanup_jobs`.
+- Super Admin Phase 4 endpoints expose provider status, connector health and file-processing metrics without exposing file contents. Provider errors are stored server-side and customer responses remain generic.
+
+Without Cashfree/Razorpay sandbox credentials, provider connection and webhook tests intentionally return `PROVIDER_NOT_CONFIGURED` or invalid-signature responses. This is a safe non-fake state, not a simulated payment success.
+
 ## Production hand-off points
 
 1. Replace the in-memory `shops`/`orders` maps with PostgreSQL repositories.

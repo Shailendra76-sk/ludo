@@ -40,3 +40,25 @@ The assistant is a restricted, deterministic server-side data tool. It can answe
 
 ## Security and production hand-off
 Current protections include server-side auth, role and shop-scoped authorization, hashed passwords, expiring httpOnly sessions, backend pricing, payment verification boundaries, random file/order references, file signature validation, rate limits, private temporary storage, maintenance blocking and confirmation-gated admin actions. Before production, replace local JSON/in-memory repositories with PostgreSQL, add a real verified payment webhook, use encrypted object storage, add a persistent queue and signed connector heartbeats, use Redis-backed rate limiting, configure MFA and rotate all local defaults.
+
+
+# Phase 4 — Production Integration
+
+## Payment abstraction and safety
+`phase4.js` defines provider-neutral payment operations with Cashfree and Razorpay adapters. Shop customer payments use the shop’s connected provider; platform subscription payments remain a separate accounting stream. Shopkeeper connection routes only initiate official onboarding when server-side provider credentials are configured. No secret API key is collected from a Shopkeeper and no fake connected account is stored.
+
+Online orders can request `POST /api/orders/:orderId/payment-session`. Webhooks use `req.rawBody`, provider HMAC verification, event idempotency, exact amount matching and duplicate-event handling. Only a verified paid event changes an order to `PAID` and calls the print queue. Invalid, pending, failed and amount-mismatch events never release print. Cash flow remains unchanged and duplicate collection protection remains in Phase 2.
+
+## Secure print connector
+`connector/agent.py` is an outbound-polling Python desktop agent. A Shopkeeper creates a one-time pairing code; the agent exchanges it for a random bearer token, while the backend stores only its SHA-256 hash. Connector jobs and private file streaming are scoped by connector shop. The agent detects local printers through `lpstat`/PowerShell, sends heartbeats, polls jobs, issues a local print command and completes each job idempotently. No printer port is exposed to the internet.
+
+Print jobs use `PRINT_QUEUED`, `PRINTING`, `PRINTED`, `PRINT_FAILED` and `CANCELLED` fields with order/shop/printer/copies/type/page-range/timestamps/error. A connector-backed job is deferred instead of being silently printed by the mock path; only connector completion changes it to `PRINTED`.
+
+## Files and cleanup
+The supported types remain PDF, JPG/JPEG and PNG with MIME plus magic-byte validation. The browser and Multer backend enforce a 250 MB maximum. Temporary upload references remain opaque and private; connector file access requires the connector bearer token and matching shop. Existing cleanup retains successful-print files for approximately five minutes. `file_cleanup_jobs` and `file_processing_jobs` tables are included for the durable worker/object-storage deployment.
+
+## Phase 4 tables and observability
+Supabase additions are `payment_connections`, `payment_webhooks`, `payment_events`, `print_connectors`, `print_jobs`, `file_processing_jobs` and `file_cleanup_jobs`, with foreign keys, indexes and shop-scoped RLS policies. Super Admin metrics expose provider status, connected shop count, provider success/failure counters, connector health and file-processing counts without returning customer file contents.
+
+## Test/production limitation
+Provider adapters deliberately return a safe not-configured state until Cashfree/Razorpay sandbox credentials and official merchant onboarding are supplied. A payment success is never inferred from a frontend response. Before production, place the app behind HTTPS, configure real provider signing secrets and webhook URLs, use durable object storage and a queue worker, run the Python agent on the shop PC, and complete sandbox success/failure/pending/duplicate/mismatch/refund and real-printer tests.

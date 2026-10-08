@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "node --check server.js && node --check phase3.js && node --check public/app.js && node --check public/shopkeeper.js && node --check public/superadmin.js",
+    "test": "node --check server.js && node --check phase3.js && node --check phase4.js && node --check public/app.js && node --check public/shopkeeper.js && node --check public/superadmin.js && python3 -m py_compile connector/agent.py",
     "start": "node server.js",
     "dev": "node --watch server.js"
   },

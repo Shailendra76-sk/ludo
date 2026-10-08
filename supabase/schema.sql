@@ -1,10 +1,9 @@
--- Printer Auto Phase 3 production schema. Apply through Supabase SQL editor or migrations.
+-- Printer Auto production schema: Phase 3 + Phase 4. Apply through Supabase SQL editor or migrations.
 create extension if not exists pgcrypto;
 create type public.shop_status as enum ('ACTIVE','SUSPENDED','EXPIRED');
 create type public.user_role as enum ('SHOPKEEPER','SUPER_ADMIN');
 create type public.subscription_status as enum ('ACTIVE','TRIAL','EXPIRED','CANCELLED','PAYMENT_PENDING');
 create type public.payment_status as enum ('PENDING','PAID','FAILED','REFUNDED');
-
 create table if not exists public.shops (id text primary key, name text not null, owner_name text, mobile text, email text, address text, status public.shop_status not null default 'ACTIVE', created_at timestamptz not null default now(), updated_at timestamptz not null default now());
 create table if not exists public.shop_users (id text primary key, shop_id text references public.shops(id), name text, email text unique not null, password_hash text not null, role public.user_role not null default 'SHOPKEEPER', status text not null default 'ACTIVE', last_login timestamptz, created_at timestamptz not null default now());
 create table if not exists public.plans (id text primary key, name text not null, price numeric(12,2) not null, duration text not null, features jsonb not null default '[]', status text not null default 'ACTIVE', created_at timestamptz not null default now());
@@ -16,12 +15,25 @@ create table if not exists public.pricing (id text primary key, shop_id text uni
 create table if not exists public.activity_logs (id text primary key, shop_id text, user_id text, action text not null, metadata jsonb not null default '{}', created_at timestamptz not null default now());
 create table if not exists public.health_checks (id bigserial primary key, component text not null, status text not null, response_time numeric, error text, checked_at timestamptz not null default now());
 create table if not exists public.ai_audit_logs (id text primary key, admin_id text not null, request text not null, action text, confirmation text, result text, created_at timestamptz not null default now());
-
-alter table public.shops enable row level security; alter table public.shop_users enable row level security; alter table public.orders enable row level security; alter table public.payments enable row level security; alter table public.printers enable row level security; alter table public.activity_logs enable row level security;
+create table if not exists public.payment_connections (id text primary key, shop_id text not null references public.shops(id), provider text not null check (provider in ('cashfree','razorpay')), merchant_account_id text, status text not null, created_at timestamptz not null default now(), updated_at timestamptz not null default now(), unique(shop_id));
+create table if not exists public.payment_webhooks (event_id text primary key, provider text not null, signature_verified boolean not null, payload_hash text not null, received_at timestamptz not null default now(), processed_at timestamptz, status text not null, error text);
+create table if not exists public.payment_events (id text primary key, event_id text unique, shop_id text references public.shops(id), order_id text references public.orders(id), provider text not null, amount numeric(12,2), status public.payment_status not null, created_at timestamptz not null default now());
+create table if not exists public.print_connectors (id text primary key, shop_id text not null references public.shops(id), device_name text, token_hash text not null, status text not null, last_heartbeat timestamptz, created_at timestamptz not null default now());
+create table if not exists public.print_jobs (id text primary key, order_id text not null references public.orders(id), shop_id text not null references public.shops(id), file_reference text not null, printer_id text, copies integer not null, print_type text not null, page_range jsonb, status text not null check (status in ('PRINT_QUEUED','PRINTING','PRINTED','PRINT_FAILED','CANCELLED')), created_at timestamptz not null default now(), started_at timestamptz, completed_at timestamptz, error text);
+create table if not exists public.file_processing_jobs (id text primary key, shop_id text, upload_reference text not null, original_size bigint, processed_size bigint, status text not null, created_at timestamptz not null default now(), completed_at timestamptz, error text);
+create table if not exists public.file_cleanup_jobs (id text primary key, upload_reference text not null, order_id text, scheduled_at timestamptz not null, completed_at timestamptz, status text not null);
+create index if not exists payment_events_order_idx on public.payment_events(order_id);
+create index if not exists print_jobs_shop_status_idx on public.print_jobs(shop_id,status);
+create index if not exists print_connectors_shop_status_idx on public.print_connectors(shop_id,status);
+create index if not exists file_cleanup_due_idx on public.file_cleanup_jobs(status,scheduled_at);
+alter table public.shops enable row level security; alter table public.shop_users enable row level security; alter table public.orders enable row level security; alter table public.payments enable row level security; alter table public.printers enable row level security; alter table public.activity_logs enable row level security; alter table public.payment_connections enable row level security; alter table public.payment_events enable row level security; alter table public.print_connectors enable row level security; alter table public.print_jobs enable row level security; alter table public.file_processing_jobs enable row level security;
 create or replace function public.current_shop_id() returns text language sql stable as $$ select nullif(current_setting('request.jwt.claims', true)::json->'app_metadata'->>'shop_id','') $$;
 create policy "shopkeepers read own orders" on public.orders for select using (shop_id = public.current_shop_id());
 create policy "shopkeepers read own printers" on public.printers for select using (shop_id = public.current_shop_id());
 create policy "shopkeepers read own payments" on public.payments for select using (shop_id = public.current_shop_id());
 create policy "shopkeepers read own logs" on public.activity_logs for select using (shop_id = public.current_shop_id());
 create policy "public reads active shop summary" on public.shops for select using (status = 'ACTIVE');
+create policy "shopkeepers read own payment connection" on public.payment_connections for select using (shop_id = public.current_shop_id());
+create policy "shopkeepers read own print jobs" on public.print_jobs for select using (shop_id = public.current_shop_id());
+create policy "shopkeepers read own connector" on public.print_connectors for select using (shop_id = public.current_shop_id());
 -- SUPER_ADMIN access uses a backend service role or a dedicated claim policy; service-role keys never reach the frontend.
