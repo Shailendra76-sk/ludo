@@ -133,3 +133,26 @@ See `supabase/migrations/20261009_superadmin_control_center.sql` for the product
 - `npm run security:audit` — security remediation regression suite.
 - `npm run security:deps` — dependency audit.
 - `npm run test:all` — syntax, security, dependency and control-center checks.
+
+## Production-readiness follow-up
+
+The `production-readiness-2026-10-09` branch adds opt-in Supabase REST/Storage adapters, forward-only transaction/idempotency/retention contracts, private signed-object streaming for connectors, encrypted AI key replacement/removal, cleanup retry metadata, and explicit staging verification commands. Local development remains on local persistence/storage unless `PERSISTENCE_BACKEND=supabase` is enabled.
+
+### Staging procedure
+
+1. Create a dedicated Supabase staging project and apply `supabase/schema.sql`, then the migrations in timestamp order, including `20261009_superadmin_control_center.sql` and `20261009_production_readiness.sql`.
+2. Configure `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_ANON_KEY`, and `STAGING_SUPABASE_SERVICE_ROLE_KEY` only in the staging shell/CI secret store.
+3. Run `npm run staging:verify`. This performs service-role schema checks and explicitly reports that identity/RLS checks are not claimed unless the corresponding test identities are configured. Use `npm run staging:verify:required` in a release gate.
+4. Configure `PERSISTENCE_BACKEND=supabase`, `SUPABASE_RUNTIME_MIGRATION_COMPLETE=true`, `REQUIRE_DURABLE_PERSISTENCE=true`, `SUPABASE_STORAGE_BUCKET`, `APP_ENCRYPTION_KEY`, trusted origins and provider sandbox credentials only after the staging checks pass. The server fails startup when durable persistence is required but not configured.
+5. Verify anonymous, authenticated shopkeeper, staff and Super Admin RLS access in the staging project, including cross-shop reads, Storage object access and cleanup retries. Record the results before enabling production.
+
+### Backup and recovery runbook
+
+- Enable Supabase point-in-time recovery and scheduled database backups for the production project; retain the backup schedule and restore owner in the deployment runbook.
+- Keep Storage object versioning/retention enabled where supported. Database `storage_objects` and `file_cleanup_jobs` records are the source of truth for deletion reconciliation.
+- For recovery, restore the database snapshot first, validate the migration version, then reconcile Storage objects by `object_key` and `status`; never make restored print files public by default.
+- Rotate the service-role key and `APP_ENCRYPTION_KEY` through the secret manager during an incident. Key rotation requires a reviewed re-encryption migration; do not overwrite the old key without a recovery copy.
+
+### External checks not run in this environment
+
+No Supabase staging project, Storage bucket, provider sandbox merchant account, or external secret manager was configured for this task. Therefore this branch does **not** claim production readiness, RLS runtime verification, Storage policy verification, Cashfree/Razorpay sandbox verification, refunds/reconciliation, or multi-instance session consistency.
