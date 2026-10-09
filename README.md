@@ -156,3 +156,44 @@ The `production-readiness-2026-10-09` branch adds opt-in Supabase REST/Storage a
 ### External checks not run in this environment
 
 No Supabase staging project, Storage bucket, provider sandbox merchant account, or external secret manager was configured for this task. Therefore this branch does **not** claim production readiness, RLS runtime verification, Storage policy verification, Cashfree/Razorpay sandbox verification, refunds/reconciliation, or multi-instance session consistency.
+
+## System Configuration Center
+
+The protected Super Admin panel now includes **System Configuration Center** at `/superadmin` as a unified, read-only-by-default configuration and diagnostics surface. It groups:
+
+1. Dashboard and Configuration Overview
+2. Database and Data Persistence
+3. File Storage and Retention
+4. AI Providers
+5. Payment Providers
+6. Authentication and Security
+7. Printer Connector
+8. Notifications and Email
+9. Environment and Deployment
+10. Health Checks and Diagnostics
+11. Setup Guide and Integration Checklist
+12. Configuration Audit History
+
+The registry distinguishes runtime-editable settings, sensitive credential presence, and deployment-only values. Secrets are never returned. Connection status is not inferred from credential presence: diagnostics use `TEST_PASSED`, `TEST_FAILED`, `BLOCKED_EXTERNAL_SETUP`, `MIGRATION_REQUIRED`, `CONFIGURED_NOT_TESTED`, `NOT_CONFIGURED`, `DISABLED`, `NOT_IMPLEMENTED` and `NEEDS_ATTENTION` states.
+
+Protected endpoints include:
+
+- `GET /api/superadmin/system-config`
+- `GET /api/superadmin/system-config/:category`
+- `GET /api/superadmin/system-config/guide?q=...`
+- `GET /api/superadmin/system-config/audit`
+- `POST /api/superadmin/system-config/test`
+- `PUT /api/superadmin/system-config/runtime`
+
+Only allowlisted runtime settings can be changed. Authentication, CSRF, CORS, tenant isolation, payment verification, replay protection and audit logging cannot be disabled from the panel. Email is accurately shown as not implemented; no email credential is accepted. MongoDB remains optional and unused.
+
+Apply the new forward-only migration after the production-readiness migration:
+
+```text
+supabase/schema.sql
+supabase/migrations/20261009_superadmin_control_center.sql
+supabase/migrations/20261009_production_readiness.sql
+supabase/migrations/20261009_system_configuration_center.sql
+```
+
+Real Supabase RLS, Storage, payment sandbox and provider connection tests remain staging-gated. The panel reports those checks as blocked or not tested until real external setup is supplied.
