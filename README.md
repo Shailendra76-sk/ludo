@@ -67,6 +67,37 @@ SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/migrate-local-to-sup
 
 Without Cashfree/Razorpay sandbox credentials, provider connection and webhook tests intentionally return `PROVIDER_NOT_CONFIGURED` or invalid-signature responses. This is a safe non-fake state, not a simulated payment success.
 
+## Security audit and remediation
+
+A dedicated security branch was created for this audit: `security-audit-remediation-2026-10-09`. The baseline suite was run before remediation and reproduced five failures: public order disclosure, client-controlled payment callback verification, missing-amount webhook acceptance, reflected arbitrary CORS, and default Super Admin credentials.
+
+See the complete severity-ranked report, reproduction details and remaining launch blockers in [`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md).
+
+The remediation adds:
+
+- Provider-specific signed callback/webhook checks with exact order ID, provider transaction ID, amount, currency and merchant-account matching.
+- Persistent webhook and print-job idempotency, duplicate payment/print protection and per-job connector completion proof.
+- No demo/default credentials in production; missing or weak Super Admin credentials fail startup.
+- Persistent session records, expiry, revocation, strict/httpOnly cookies, CSRF checks and persisted login rate limits.
+- Configured-origin-only CORS using `TRUSTED_ORIGINS`.
+- Authenticated shop-scoped order reads, upload-to-shop binding, connector token revoke/rotate and malformed-file rejection.
+- Production-only server credential configuration; mock payment success is not used by payment routes.
+
+Run the full local, production-mode, no-real-payment audit with:
+
+```bash
+npm run security:audit
+npm run security:deps
+```
+
+Actual test suites and scope:
+
+- `security-audit.test.js` — baseline vulnerability regressions.
+- `security-audit.phase4.test.js` — payment identity, official-signed callback, replay, print proof, connector revoke, malformed file and startup guard.
+- `security-audit.state.test.js` — CSRF, trusted/untrusted CORS, cross-shop upload binding, session persistence/revocation and persistent rate limiting.
+
+The production data path is configurable through `PRINTER_AUTO_DATA_DIR`. The current file-backed persistence is suitable for a single-node deployment; multi-process production should move sessions/rate limits/idempotency to Redis or PostgreSQL with transactions/unique constraints.
+
 ## Production hand-off points
 
 1. Replace the in-memory `shops`/`orders` maps with PostgreSQL repositories.

@@ -54,7 +54,7 @@ def main():
             request(base+'/api/connector/heartbeat','POST',{'status':'ONLINE' if printer else 'OFFLINE','printerName':printer},token)
             for job in request(base+'/api/connector/jobs',token=token).get('jobs',[]):
                 local_file = download_job(base, token, job) if printer else ''; ok=bool(printer) and print_file(printer, local_file, job.get('copies',1)); Path(local_file).unlink(missing_ok=True)
-                request(base+'/api/connector/jobs/'+job['id']+'/complete','POST',{'status':'PRINTED' if ok else 'PRINT_FAILED'},token)
+                request(base+'/api/connector/jobs/'+job['id']+'/complete','POST',{'result':'PRINTED' if ok else 'PRINT_FAILED','completionToken':job.get('completionToken','')},token)
             time.sleep(max(2,args.interval))
         except (urllib.error.URLError, OSError, ValueError) as e:
             print('Connector temporarily offline:', e, file=sys.stderr); time.sleep(max(5,args.interval))
