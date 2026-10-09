@@ -51,3 +51,9 @@ These are real blockers, not simulated test results. The source connector can st
 - Python connector syntax and health/version code paths can be statically checked here.
 - Pinned dependency hashes, no-secret installer configuration, least-privilege settings, versioned upgrade name, uninstall definition and signature/checksum gates are covered by `npm run test:installer`.
 - A Windows executable, Authenticode signature, clean Windows installation/upgrade/uninstall, USB/network printer output and model support matrix were **not** produced or tested here.
+
+
+## Operator documents
+
+- [`WINDOWS_RELEASE_OPERATOR_GUIDE.md`](WINDOWS_RELEASE_OPERATOR_GUIDE.md) — step-by-step guide for the Windows release operator.
+- [`../WINDOWS_INSTALLER_RELEASE_CHECKLIST.md`](../WINDOWS_INSTALLER_RELEASE_CHECKLIST.md) — repository/external task split and final acceptance checklist.

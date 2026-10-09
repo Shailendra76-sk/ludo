@@ -18,6 +18,11 @@ NOT_AVAILABLE
 
 No `.exe`, `.msi`, official download URL, signature, checksum manifest, or model-support claim is being presented as released.
 
+## Operator documentation
+
+- [Release checklist](WINDOWS_INSTALLER_RELEASE_CHECKLIST.md) separates repository work from external blockers and includes acceptance criteria.
+- [Windows release operator guide](installer/WINDOWS_RELEASE_OPERATOR_GUIDE.md) explains build-machine setup, certificate protection, build, verification, Windows tests and evidence collection for a non-expert operator.
+
 ## What was implemented
 
 - `requirements-windows.txt` pins the CPython 3.11 win_amd64 build dependencies with exact SHA-256 wheel hashes.
