@@ -1,11 +1,11 @@
-# Printer Auto — Phase 1 + Phase 2 + Phase 3
+# Printer Auto — Customer, Shopkeeper and Super Admin Platform
 
-A plain-local, mobile-first QR printing customer flow, secure Shopkeeper panel, and Super Admin platform control plane. Phase 4 is intentionally not included.
+A plain-local, mobile-first QR printing customer flow, secure Shopkeeper panel, verified printer connector, bilingual Help Center and Super Admin platform control plane.
 
 ## Run
 
 ```bash
-cd /home/ubuntu/ludo
+cd /home/ubuntu/ludo-repo
 npm start
 ```
 
@@ -16,8 +16,7 @@ Open:
 - `http://localhost:8787/shopkeeper/login`
 - `http://localhost:8787/superadmin/login`
 
-Local demo Shopkeeper login: `demo@printerauto.local` / `demo1234`.
-Local demo Super Admin login: `admin@printerauto.local` / `Admin123!`.
+Development demo credentials are available only in non-production local mode. Production requires explicit strong `BOOTSTRAP_SHOPKEEPER_*` and `SUPERADMIN_*` environment credentials; no fallback credentials are accepted.
 
 ## Current working behavior
 
@@ -197,3 +196,25 @@ supabase/migrations/20261009_system_configuration_center.sql
 ```
 
 Real Supabase RLS, Storage, payment sandbox and provider connection tests remain staging-gated. The panel reports those checks as blocked or not tested until real external setup is supplied.
+
+
+## Shopkeeper Printer Management and Help Center
+
+The feature branch `shopkeeper-printer-help-center-2026-10-09` adds a protected Printer Management view and bilingual Help Center. See [`SHOPKEEPER_PRINTER_SETUP.md`](./SHOPKEEPER_PRINTER_SETUP.md) for Windows driver, USB/network, pairing, verified test-print, troubleshooting and production manual setup steps.
+
+### Verified connector behavior
+
+- Pairing codes are one-time, short-lived and hashed at rest. Revoke invalidates the bearer token; rotate returns a replacement token once.
+- Connector heartbeats are shop-bound and stale heartbeats are shown as `OFFLINE`; an offline connector can recover through an authenticated heartbeat unless revoked.
+- Test and paid jobs are scoped to the connector's shop. Private files are streamed only through the authenticated job route.
+- `PRINTED` requires a server-issued completion token plus connector evidence: printer name, verification timestamp, exit code and local job reference. Browser assertions are never accepted as print proof.
+- Failed jobs have sanitized error messages, bounded retry attempts and idempotent completion. A verified print cannot be duplicated through retry.
+- Help content is searchable in English and Hindi. The optional AI helper fails closed when no server-side provider is configured and receives only curated help content plus aggregate printer state.
+
+Run the new isolated feature test with:
+
+```bash
+npm run test:shopkeeper-printer
+```
+
+The full `npm run test:all` command includes the existing security, production-readiness, system-configuration and control-center checks. External Supabase, private Storage, Windows hardware, payment sandbox and multi-instance checks remain manual/staging gates; this repository does not claim those checks passed without their real credentials and infrastructure.

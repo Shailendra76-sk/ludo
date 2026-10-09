@@ -29,17 +29,22 @@ def download_job(base, token, job):
         tmp = Path('/tmp') / ('printer-auto-' + job['id'] + '.bin'); tmp.write_bytes(r.read()); return str(tmp)
 
 def print_file(printer, file_ref, copies, test=False):
-    # Production deployments should resolve file_ref through a mutually-authenticated private
-    # file channel. This agent intentionally does not accept public URLs or arbitrary paths.
-    if test:
-        return True
-    local = Path(file_ref)
-    if not local.is_file() or local.is_symlink(): return False
-    if platform.system() == 'Windows': return False
+    """Print locally and return evidence; never claim success from a browser assertion."""
+    evidence = {'printerName': printer, 'verifiedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'exitCode': 1, 'localJobId': f'{platform.node()}-{int(time.time()*1000)}'}
+    if not printer or not file_ref or not Path(file_ref).is_file() or Path(file_ref).is_symlink():
+        evidence['error'] = 'Local printer or private job file unavailable.'
+        return {'ok': False, 'evidence': evidence}
     try:
-        subprocess.run(['lp','-d',printer,'-n',str(max(1, int(copies))),str(local)], check=True, timeout=120, capture_output=True)
-        return True
-    except Exception: return False
+        if platform.system() == 'Windows':
+            ps = "Start-Process -FilePath $args[0] -Verb PrintTo -ArgumentList $args[1] -PassThru | Out-Null; Start-Sleep -Seconds 2"
+            subprocess.run(['powershell', '-NoProfile', '-NonInteractive', '-Command', ps, str(file_ref), printer], check=True, timeout=120, capture_output=True)
+        else:
+            subprocess.run(['lp', '-d', printer, '-n', str(max(1, int(copies))), str(file_ref)], check=True, timeout=120, capture_output=True)
+        evidence['exitCode'] = 0
+        return {'ok': True, 'evidence': evidence}
+    except Exception as exc:
+        evidence['error'] = 'Local print command failed.'
+        return {'ok': False, 'evidence': evidence}
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('--backend', required=True); ap.add_argument('--pairing-id'); ap.add_argument('--code'); ap.add_argument('--device-name', default=f'Printer Auto Connector ({platform.node()})'); ap.add_argument('--interval', type=int, default=5); ap.add_argument('--test', action='store_true'); args=ap.parse_args(); base=args.backend.rstrip('/')
@@ -48,13 +53,12 @@ def main():
     if not CONFIG.exists(): raise SystemExit('Pair the connector first with --pairing-id and --code')
     cfg=json.loads(CONFIG.read_text()); token=cfg['token']; names=detect_printers(); printer=names[0] if names else ''
     print('Detected printers:', ', '.join(names) or 'none')
-    if args.test and printer: print('Test print:', 'sent' if print_file(printer,'',1,True) else 'failed')
     while True:
         try:
-            request(base+'/api/connector/heartbeat','POST',{'status':'ONLINE' if printer else 'OFFLINE','printerName':printer},token)
+            request(base+'/api/connector/heartbeat','POST',{'status':'ONLINE' if printer else 'OFFLINE','printerName':printer,'error':None if printer else 'No local printer detected.'},token)
             for job in request(base+'/api/connector/jobs',token=token).get('jobs',[]):
-                local_file = download_job(base, token, job) if printer else ''; ok=bool(printer) and print_file(printer, local_file, job.get('copies',1)); Path(local_file).unlink(missing_ok=True)
-                request(base+'/api/connector/jobs/'+job['id']+'/complete','POST',{'result':'PRINTED' if ok else 'PRINT_FAILED','completionToken':job.get('completionToken','')},token)
+                local_file = download_job(base, token, job) if printer else ''; result = print_file(printer, local_file, job.get('copies',1), bool(job.get('test'))) if printer else {'ok': False, 'evidence': {'printerName': '', 'verifiedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'exitCode': 1, 'localJobId': f'{platform.node()}-{int(time.time()*1000)}', 'error': 'No local printer detected.'}}; Path(local_file).unlink(missing_ok=True) if local_file else None
+                request(base+'/api/connector/jobs/'+job['id']+'/complete','POST',{'result':'PRINTED' if result['ok'] else 'PRINT_FAILED','completionToken':job.get('completionToken',''),'evidence':result['evidence']},token)
             time.sleep(max(2,args.interval))
         except (urllib.error.URLError, OSError, ValueError) as e:
             print('Connector temporarily offline:', e, file=sys.stderr); time.sleep(max(5,args.interval))
