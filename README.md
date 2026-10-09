@@ -107,3 +107,29 @@ The production data path is configurable through `PRINTER_AUTO_DATA_DIR`. The cu
 5. Add Redis-backed rate limiting and structured audit logs.
 
 The full architecture and contracts are in [`plan.md`](./plan.md).
+
+## Phase 5 — Super Admin Control Center
+
+The `super-admin-control-center-2026-10-09` branch adds an additive control plane at `/superadmin` without rewriting the Phase 1–4 flows. New sections cover **Shops and Shopkeepers, Orders and Print Jobs, Subscriptions and Plans, Payment Center, Coupons and Offers, Website CMS, Banner Manager, Media Library, AI Control Center, BI and Analytics, Notifications, Reports and Exports, System Health, Audit Logs, and Security and Settings**.
+
+### Phase 5 capabilities
+
+- Persistent CMS/site settings, privacy/terms/refund/help content, announcements and explicit draft/publish banner workflow.
+- PNG/JPEG/WEBP media library with MIME/signature checks, dimension limits, alt text, public/private state and in-use deletion protection.
+- Server-side coupon validation and final price recalculation; percentage/fixed discounts, caps, minimums, shop eligibility, date windows and redemption limits.
+- Payment Center status view for Cashfree/Razorpay configuration without exposing secrets; no fake payment/refund state is created.
+- AI Control Center that stores only provider/model/limits, never returns a key, and fails closed when no server-side provider is configured.
+- BI metrics and CSV export with explicit definitions and formula-safe CSV escaping.
+- Persistent admin notifications and control-center change events.
+- Published content is delivered through `/api/public/content`; the customer QR print page renders only published server-sanitized announcements/banners.
+
+### Configuration
+
+See `supabase/migrations/20261009_superadmin_control_center.sql` for the production schema and RLS boundary. Configure provider credentials only through environment variables or a secrets manager; do not put them in CMS, JSON state, browser storage or logs. For production, set a real shared database/data directory, trusted origins, provider merchant references and verified Cashfree/Razorpay webhook credentials. AI remains disabled until a server-side provider key and an approved model are configured.
+
+### Tests
+
+- `npm run test:control-center` — isolated production-mode CMS/media/coupon/public-content/AI/BI regression suite.
+- `npm run security:audit` — security remediation regression suite.
+- `npm run security:deps` — dependency audit.
+- `npm run test:all` — syntax, security, dependency and control-center checks.

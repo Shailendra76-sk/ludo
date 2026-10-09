@@ -7,7 +7,9 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "security:audit": "node security-audit.test.js && node security-audit.phase4.test.js && node security-audit.state.test.js",
-    "security:deps": "npm audit --audit-level=high"
+    "security:deps": "npm audit --audit-level=high",
+    "test:control-center": "node control-center.test.js",
+    "test:all": "npm test && npm run security:audit && npm run security:deps && npm run test:control-center"
   },
   "keywords": [],
   "author": "",
