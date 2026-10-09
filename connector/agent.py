@@ -10,6 +10,24 @@ import argparse, json, os, platform, subprocess, sys, time, urllib.request, urll
 from pathlib import Path
 
 CONFIG = Path.home() / '.printer-auto-connector.json'
+VERSION_FILE = Path(sys.executable).with_name('version.txt') if getattr(sys, 'frozen', False) else Path(__file__).with_name('VERSION')
+CONNECTOR_VERSION = os.environ.get('PRINTERAUTO_CONNECTOR_VERSION') or (VERSION_FILE.read_text().strip() if VERSION_FILE.exists() else '0.0.0-dev')
+
+def secure_config_file():
+    try:
+        os.chmod(CONFIG, 0o600)
+    except OSError:
+        pass
+    if platform.system() == 'Windows' and CONFIG.exists():
+        try:
+            identity = subprocess.check_output(['whoami'], text=True, timeout=5).strip()
+            subprocess.run(['icacls', str(CONFIG), '/inheritance:r', '/grant:r', f'{identity}:F'], check=True, capture_output=True, timeout=10)
+        except Exception:
+            raise SystemExit('Could not lock connector token permissions on Windows; refusing to continue.')
+
+def local_health():
+    names = detect_printers()
+    return {'version': CONNECTOR_VERSION, 'platform': platform.platform(), 'printerCount': len(names), 'printers': names, 'driverChecks': {name: windows_driver_installed(name) for name in names}}
 
 def request(url, method='GET', body=None, token=None):
     data = json.dumps(body).encode() if body is not None else None
@@ -57,10 +75,15 @@ def print_file(printer, file_ref, copies, test=False):
         return {'ok': False, 'evidence': evidence}
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('--backend', required=True); ap.add_argument('--pairing-id'); ap.add_argument('--code'); ap.add_argument('--device-name', default=f'Printer Auto Connector ({platform.node()})'); ap.add_argument('--interval', type=int, default=5); ap.add_argument('--test', action='store_true'); args=ap.parse_args(); base=args.backend.rstrip('/')
+    ap=argparse.ArgumentParser(); ap.add_argument('--backend'); ap.add_argument('--pairing-id'); ap.add_argument('--code'); ap.add_argument('--device-name', default=f'Printer Auto Connector ({platform.node()})'); ap.add_argument('--interval', type=int, default=5); ap.add_argument('--test', action='store_true'); ap.add_argument('--version', action='store_true'); ap.add_argument('--health-check', action='store_true'); args=ap.parse_args()
+    if args.version: print(CONNECTOR_VERSION); return
+    if args.health_check: print(json.dumps(local_health(), indent=2)); return
+    if not args.backend: ap.error('--backend is required unless --version or --health-check is used')
+    base=args.backend.rstrip('/')
     if args.pairing_id and args.code:
-        d=request(base+'/api/connector/register','POST',{'pairingId':args.pairing_id,'code':args.code,'deviceName':args.device_name}); CONFIG.write_text(json.dumps(d)); os.chmod(CONFIG,0o600); print(f"Registered for shop {d['shopId']}")
-    if not CONFIG.exists(): raise SystemExit('Pair the connector first with --pairing-id and --code')
+        d=request(base+'/api/connector/register','POST',{'pairingId':args.pairing_id,'code':args.code,'deviceName':args.device_name}); tmp=CONFIG.with_suffix('.tmp'); tmp.write_text(json.dumps(d)); tmp.replace(CONFIG); secure_config_file(); print(f"Registered for shop {d['shopId']}")
+    if not CONFIG.exists(): raise SystemExit('First run requires a one-time shop pairing: use --pairing-id and --code from Shopkeeper > Printer Management.')
+    secure_config_file()
     cfg=json.loads(CONFIG.read_text()); token=cfg['token']; names=detect_printers(); printer=names[0] if names else ''
     print('Detected printers:', ', '.join(names) or 'none')
     while True:

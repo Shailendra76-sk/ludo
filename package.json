@@ -9,12 +9,13 @@
     "security:audit": "node security-audit.test.js && node security-audit.phase4.test.js && node security-audit.state.test.js",
     "security:deps": "npm audit --audit-level=high",
     "test:control-center": "node control-center.test.js",
-    "test:all": "npm test && npm run test:production-readiness && npm run test:system-config && npm run security:audit && npm run security:deps && npm run test:control-center && npm run test:shopkeeper-printer",
+    "test:all": "npm test && npm run test:production-readiness && npm run test:system-config && npm run security:audit && npm run security:deps && npm run test:control-center && npm run test:shopkeeper-printer && npm run test:installer",
     "test:production-readiness": "node production-readiness.test.js",
     "staging:verify": "node staging-readiness.test.js",
     "staging:verify:required": "node staging-readiness.test.js --require-staging",
     "test:system-config": "node system-configuration.test.js",
-    "test:shopkeeper-printer": "node shopkeeper-printer-help.test.js"
+    "test:shopkeeper-printer": "node shopkeeper-printer-help.test.js",
+    "test:installer": "node installer/installer-config.test.js"
   },
   "keywords": [],
   "author": "",

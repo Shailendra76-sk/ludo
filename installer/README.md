@@ -8,7 +8,7 @@ The Shopkeeper wizard therefore reports `Signed Windows installer: not available
 
 ## Required production build process
 
-The release owner must complete these steps on a controlled Windows build host:
+The release owner must complete these steps on a controlled Windows build host. The committed `PrinterAutoConnector.iss`, `build-windows.ps1` and `verify-release.ps1` files are build/release controls, not proof that an artifact has already been produced:
 
 1. Pin and review the Python/runtime dependencies. Run the repository security and connector tests.
 2. Build a Windows executable with a pinned PyInstaller version from a clean checkout, for example:
@@ -36,10 +36,18 @@ The release owner must complete these steps on a controlled Windows build host:
 
 ## Build blockers
 
-- No pinned `requirements-windows.txt` with hashes is currently committed.
-- No PyInstaller/WiX/Inno build environment is available in this Linux sandbox.
-- No code-signing certificate or signing identity is configured.
+- Pinned `requirements-windows.txt` with exact wheel hashes is now committed for CPython 3.11 win_amd64; the controlled Windows build still must fetch and install it with `--require-hashes`.
+- No Windows/PyInstaller/Inno Setup build environment is available in this Linux sandbox.
+- No code-signing certificate or signing identity is configured in this task.
 - No official release bucket/CDN, update manifest or authenticated download endpoint is configured.
 - No physical Windows printer test host is available here.
 
 These are real blockers, not simulated test results. The source connector can still be inspected and syntax-tested, but it is not a signed Windows product installer.
+
+
+## What was verified in this Linux sandbox
+
+- Repository branch and base commit were verified before changes.
+- Python connector syntax and health/version code paths can be statically checked here.
+- Pinned dependency hashes, no-secret installer configuration, least-privilege settings, versioned upgrade name, uninstall definition and signature/checksum gates are covered by `npm run test:installer`.
+- A Windows executable, Authenticode signature, clean Windows installation/upgrade/uninstall, USB/network printer output and model support matrix were **not** produced or tested here.
