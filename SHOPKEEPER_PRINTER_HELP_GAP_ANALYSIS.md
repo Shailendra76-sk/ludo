@@ -40,7 +40,7 @@ Feature branch: `shopkeeper-printer-help-center-2026-10-09`
 | Medium | Test print is a mock shortcut | Existing `/api/shopkeeper/printers/:id/test` changes status with a 500ms timeout; it is not tied to an authenticated connector or completion evidence | Route test print through a connector-owned test job and show `REQUESTED`, `PRINTING`, `VERIFIED`, `FAILED` states |
 | Medium | No Shopkeeper Help Center | No Shopkeeper route/page exists; CMS `helpContent` is Super Admin-managed but not a searchable bilingual help model | Add searchable Hindi/English guides, category filters, step-by-step instructions, safe troubleshooting and links to live printer/connector state |
 | Medium | No screenshots/help assets | No connector setup screenshots or asset references exist in the Shopkeeper panel | Add screenshot slots/illustrations only where available; show an honest text fallback rather than inventing screenshots |
-| Medium | No AI help assistant boundary | Existing AI assistant is Super Admin-only; Shopkeeper has no scoped help assistant | Add a Shopkeeper help assistant that receives only curated help content and safe shop printer summary; fail closed when AI is unavailable; never expose documents, tokens or secrets |
+| Medium | No Shopkeeper Help Center | No Shopkeeper route/page exists; CMS helpContent is Super Admin-managed but not a searchable bilingual help model | Add deterministic searchable Hindi/English guides; do not add a Shopkeeper AI chatbot |
 | Medium | No explicit Windows/USB/network setup guide | README/plan mention connector generally, but no Windows driver, USB, network, test-print or troubleshooting runbook | Add bilingual setup guide with prerequisites, Windows spooler/driver steps, USB/network discovery, connector installation, pairing and troubleshooting |
 | Medium | Error/status semantics are too broad | Existing statuses are `Online`, `Offline`, `Busy`, `Error`, but there is no safe error taxonomy or last verified print record | Add normalized safe statuses and sanitized error messages; no claim of connected/successful without server evidence |
 | Low | Connector state and print-job state are separate from existing local printer map | Phase 4 maintains connector/print-job state separately from the Phase 2 `printers` map | Add a read-only projection joining authorized connector/job/printer data instead of duplicating ownership records |
@@ -62,7 +62,12 @@ Feature branch: `shopkeeper-printer-help-center-2026-10-09`
 1. Add server-side connector/printer projection, heartbeat freshness, safe error/last-verified-print fields, pairing/revoke/rotate helpers and bounded retry/test-job routes.
 2. Strengthen connector completion evidence and implement Windows printing/test evidence while preserving Linux behavior.
 3. Add Shopkeeper Printer Management UI that consumes the protected projection and exposes pairing, revoke, re-pair, test print, retry and troubleshooting links.
-4. Add bilingual searchable Help Center and a fail-closed, read-only AI help endpoint.
+4. Add bilingual searchable Help Center with no AI chatbot; show truthful screenshot availability and official support links.
 5. Add isolated tests for shop isolation, pairing/revocation, offline/recovery status, failed jobs, retry idempotency, evidence-required completion and unauthorized access.
 6. Update README, plan and setup guide with Windows prerequisites, drivers, USB/network setup, staging/manual gates and actual test results.
 7. Run the full existing suite plus new tests; push only this feature branch and do not merge to `main`.
+
+
+## Revised prompt addendum
+
+The later beginner-friendly requirement supersedes the earlier AI-assistant requirement: the Shopkeeper Help Center is deterministic and searchable, with **no AI chatbot**. Repository verification found no Windows installer artifact, signed release or official download endpoint, so the wizard reports `NOT_AVAILABLE` and links to a fail-closed build process instead of inventing a download.

@@ -23,6 +23,16 @@ def detect_printers():
     try: return [x.split(' ')[1] for x in subprocess.check_output(['lpstat','-p'], text=True).splitlines() if x.startswith('printer ')]
     except Exception: return []
 
+def windows_driver_installed(printer):
+    if platform.system() != 'Windows' or not printer:
+        return None
+    try:
+        safe_name = printer.replace("'", "''")
+        cmd = ['powershell', '-NoProfile', '-Command', f"(Get-Printer -Name '{safe_name}').DriverName"]
+        return bool(subprocess.check_output(cmd, text=True, timeout=10).strip())
+    except Exception:
+        return False
+
 def download_job(base, token, job):
     req = urllib.request.Request(base + '/api/connector/jobs/' + job['id'] + '/file', headers={'Authorization': f'Bearer {token}'})
     with urllib.request.urlopen(req, timeout=60) as r:
@@ -55,7 +65,7 @@ def main():
     print('Detected printers:', ', '.join(names) or 'none')
     while True:
         try:
-            request(base+'/api/connector/heartbeat','POST',{'status':'ONLINE' if printer else 'OFFLINE','printerName':printer,'error':None if printer else 'No local printer detected.'},token)
+            request(base+'/api/connector/heartbeat','POST',{'status':'ONLINE' if printer else 'OFFLINE','printerName':printer,'driverInstalled':windows_driver_installed(printer),'windowsVersion':platform.version() if platform.system() == 'Windows' else None,'error':None if printer else 'No local printer detected.'},token)
             for job in request(base+'/api/connector/jobs',token=token).get('jobs',[]):
                 local_file = download_job(base, token, job) if printer else ''; result = print_file(printer, local_file, job.get('copies',1), bool(job.get('test'))) if printer else {'ok': False, 'evidence': {'printerName': '', 'verifiedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'exitCode': 1, 'localJobId': f'{platform.node()}-{int(time.time()*1000)}', 'error': 'No local printer detected.'}}; Path(local_file).unlink(missing_ok=True) if local_file else None
                 request(base+'/api/connector/jobs/'+job['id']+'/complete','POST',{'result':'PRINTED' if result['ok'] else 'PRINT_FAILED','completionToken':job.get('completionToken',''),'evidence':result['evidence']},token)

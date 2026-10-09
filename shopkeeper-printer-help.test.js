@@ -17,17 +17,19 @@ async function req(url, options = {}) { const h = new Headers(options.headers ||
 async function ready() { for (let i = 0; i < 60; i++) { try { if ((await fetch(base + '/api/shops/demo-shop')).status === 200) return; } catch {} await new Promise(r => setTimeout(r, 100)); } throw Error('server not ready'); }
 (async () => { try {
   await ready();
+  let guideResponse = await fetch(base + '/shopkeeper/setup-guide'); assert.strictEqual(guideResponse.status, 200); const guideText = await guideResponse.text(); assert.ok(guideText.includes('NOT AVAILABLE'));
   let r = await req('/api/shopkeeper/help'); assert.strictEqual(r.status, 401);
   r = await req('/api/shopkeeper/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ identifier: env.BOOTSTRAP_SHOPKEEPER_IDENTIFIER, password: env.BOOTSTRAP_SHOPKEEPER_PASSWORD }) }); assert.strictEqual(r.status, 200);
   const headers = { 'x-csrf-token': csrf(), 'content-type': 'application/json' };
   r = await req('/api/shopkeeper/help'); assert.strictEqual(r.status, 200); assert.ok(r.body.guides.length >= 5);
   r = await req('/api/shopkeeper/help?q=Windows'); assert.strictEqual(r.status, 200); assert.ok(r.body.guides.some(x => x.id === 'windows-install'));
-  r = await req('/api/shopkeeper/help/ask', { method: 'POST', headers, body: JSON.stringify({ question: 'Why is the connector offline?' }) }); assert.strictEqual(r.status, 503);
+  r = await req('/api/shopkeeper/help/ask', { method: 'POST', headers, body: JSON.stringify({ question: 'Why is the connector offline?' }) }); assert.strictEqual(r.status, 404);
+  r = await req('/api/shopkeeper/printer-setup'); assert.strictEqual(r.status, 200); assert.strictEqual(r.body.installer.status, 'NOT_AVAILABLE'); assert.strictEqual(r.body.installer.downloadUrl, null); assert.ok(r.body.officialSupportLinks.some(x => x.brand === 'Windows built-in setup'));
   r = await req('/api/shopkeeper/connectors/pair', { method: 'POST', headers, body: '{}' }); assert.strictEqual(r.status, 200); const pair = r.body;
   r = await req('/api/connector/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pairingId: pair.pairingId, code: pair.code, deviceName: 'test-windows-connector' }) }); assert.strictEqual(r.status, 200); const connectorToken = r.body.token; const connectorId = r.body.connectorId;
   const connectorHeaders = { authorization: `Bearer ${connectorToken}`, 'content-type': 'application/json' };
-  r = await req('/api/connector/heartbeat', { method: 'POST', headers: connectorHeaders, body: JSON.stringify({ status: 'OFFLINE', printerName: 'USB Test Printer', error: 'Driver unavailable' }) }); assert.strictEqual(r.status, 200);
-  r = await req('/api/shopkeeper/printer-management'); assert.strictEqual(r.status, 200); assert.strictEqual(r.body.connectors[0].status, 'OFFLINE'); if (r.body.connectors[0].lastError !== 'Driver unavailable') throw Error('offline connector payload='+JSON.stringify(r.body));
+  r = await req('/api/connector/heartbeat', { method: 'POST', headers: connectorHeaders, body: JSON.stringify({ status: 'OFFLINE', printerName: 'USB Test Printer', driverInstalled: false, windowsVersion: 'Windows test', error: 'Driver unavailable' }) }); assert.strictEqual(r.status, 200);
+  r = await req('/api/shopkeeper/printer-management'); assert.strictEqual(r.status, 200); assert.strictEqual(r.body.connectors[0].status, 'OFFLINE'); assert.strictEqual(r.body.connectors[0].driverInstalled, false); if (r.body.connectors[0].lastError !== 'Driver unavailable') throw Error('offline connector payload='+JSON.stringify(r.body)); r = await req('/api/shopkeeper/printer-setup'); assert.strictEqual(r.body.checks.connectorInstalled, true); assert.strictEqual(r.body.checks.driverInstalled, false); assert.strictEqual(r.body.checks.printerConnected, false);
   r = await req('/api/connector/heartbeat', { method: 'POST', headers: connectorHeaders, body: JSON.stringify({ status: 'ONLINE', printerName: 'USB Test Printer' }) }); assert.strictEqual(r.status, 200);
   r = await req('/api/shopkeeper/printer-management'); const printerId = r.body.printers[0].id;
   r = await req(`/api/shopkeeper/printers/${printerId}/test`, { method: 'POST', headers }); assert.strictEqual(r.status, 202); const testJobId = r.body.job.id;
@@ -39,5 +41,5 @@ async function ready() { for (let i = 0; i < 60; i++) { try { if ((await fetch(b
   r = await req(`/api/shopkeeper/connectors/${connectorId}/retry`, { method: 'POST', headers, body: JSON.stringify({ jobId: failedJobId }) }); assert.strictEqual(r.status, 409);
   r = await req(`/api/shopkeeper/connectors/${connectorId}/revoke`, { method: 'POST', headers }); assert.strictEqual(r.status, 200);
   r = await req('/api/connector/heartbeat', { method: 'POST', headers: connectorHeaders, body: JSON.stringify({ status: 'ONLINE' }) }); assert.strictEqual(r.status, 401);
-  console.log(JSON.stringify({ ok: true, assertions: ['unauthorized help access', 'bilingual help/search', 'AI fail-closed boundary', 'pairing and shop binding', 'offline heartbeat/error status', 'heartbeat recovery', 'test job authorization', 'evidence-required print completion', 'failed print and bounded retry', 'connector revoke invalidation'] }, null, 2));
+  console.log(JSON.stringify({ ok: true, assertions: ['unauthorized help access', 'bilingual help/search', 'AI chatbot absent by design', 'truthful installer blocker and official support links', 'pairing and shop binding', 'offline heartbeat/error status', 'heartbeat recovery', 'test job authorization', 'evidence-required print completion', 'failed print and bounded retry', 'connector revoke invalidation'] }, null, 2));
 } finally { child.kill('SIGTERM'); fs.rmSync(dataDir, { recursive: true, force: true }); } })().catch(e => { console.error(e.stack || e); child.kill('SIGTERM'); fs.rmSync(dataDir, { recursive: true, force: true }); process.exitCode = 1; });

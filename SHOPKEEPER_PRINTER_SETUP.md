@@ -89,7 +89,7 @@ python connector/agent.py \
 
 ## Privacy and retention
 
-Customer documents stay in private storage and are accessed by a connector only through an authenticated, shop-scoped job route. Completed, failed and abandoned files follow the configured retention lifecycle. Help Center and AI help receive only curated instructions and aggregate printer state; they do not receive customer document contents, tokens, passwords or arbitrary order data.
+Customer documents stay in private storage and are accessed by a connector only through an authenticated, shop-scoped job route. Completed, failed and abandoned files follow the configured retention lifecycle. The deterministic Help Center receives only curated instructions; it does not receive customer document contents, tokens, passwords or arbitrary order data.
 
 ## Production manual gates
 

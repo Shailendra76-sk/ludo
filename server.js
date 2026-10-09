@@ -64,6 +64,7 @@ if (process.env.NODE_ENV === 'production') { for (const [uid,u] of shopUsers) if
 const trustedOrigins = new Set(String(process.env.TRUSTED_ORIGINS || '').split(',').map(x => x.trim()).filter(Boolean)); app.use(cors({ credentials: true, origin(origin, callback) { if (!origin || trustedOrigins.has(origin)) return callback(null, true); return callback(null, false); } }));
 app.use(express.json({ limit: '100kb', verify: (req, res, buf) => { req.rawBody = Buffer.from(buf); } }));
 app.use(express.static(path.join(PROJECT_ROOT, 'public')));
+app.get('/shopkeeper/setup-guide', (req, res) => res.sendFile(path.join(PROJECT_ROOT, 'installer', 'README.md')));
 app.use((req, res, next) => {
   if (app.locals.platformMaintenance && (req.path.startsWith('/print/') || req.path.startsWith('/api/shops') || req.path.startsWith('/api/uploads') || req.path.startsWith('/api/orders'))) {
     if (req.path.startsWith('/print/')) return res.status(503).send('Service temporarily unavailable.');

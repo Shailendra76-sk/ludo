@@ -209,7 +209,7 @@ The feature branch `shopkeeper-printer-help-center-2026-10-09` adds a protected 
 - Test and paid jobs are scoped to the connector's shop. Private files are streamed only through the authenticated job route.
 - `PRINTED` requires a server-issued completion token plus connector evidence: printer name, verification timestamp, exit code and local job reference. Browser assertions are never accepted as print proof.
 - Failed jobs have sanitized error messages, bounded retry attempts and idempotent completion. A verified print cannot be duplicated through retry.
-- Help content is searchable in English and Hindi. The optional AI helper fails closed when no server-side provider is configured and receives only curated help content plus aggregate printer state.
+- Help content is searchable in English and Hindi. The Shopkeeper Help Center intentionally has no AI chatbot; it uses deterministic, beginner-friendly guides and verified official support links.
 
 Run the new isolated feature test with:
 
@@ -218,3 +218,12 @@ npm run test:shopkeeper-printer
 ```
 
 The full `npm run test:all` command includes the existing security, production-readiness, system-configuration and control-center checks. External Supabase, private Storage, Windows hardware, payment sandbox and multi-instance checks remain manual/staging gates; this repository does not claim those checks passed without their real credentials and infrastructure.
+
+
+## Beginner printer setup and installer truth
+
+The Shopkeeper panel includes **Set Up My Printer**, which collects brand, exact model and Windows version, recommends Windows built-in **Add device** first, and links only to verified official support landing pages for HP, Canon India, Epson, Brother India and Microsoft. Unsupported brands receive no guessed download URL.
+
+The connector reports driver evidence, heartbeat, printer name and verified test-print evidence separately. `UNKNOWN`/`Not verified` is intentional when the server has no evidence.
+
+The repository does **not** contain a compiled or signed Windows `.exe`/`.msi` installer or official download endpoint. See [`installer/README.md`](./installer/README.md) and [`installer/build-windows.ps1`](./installer/build-windows.ps1) for the fail-closed signed build process and real blockers. The wizard does not present source code or ZIP files as installers.
