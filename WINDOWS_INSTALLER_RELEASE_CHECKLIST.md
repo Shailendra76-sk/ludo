@@ -1,7 +1,7 @@
 # PrinterAuto Windows Connector Release Checklist
 
-**Current branch:** `shopkeeper-printer-help-center-2026-10-09`  
-**Current verified commit:** `d7afea9eed73c1c8aeaabcc3652ed8f23fd9558b`  
+**Current branch:** `shopkeeper-printer-help-center-2026-10-09`
+**Current verified commit:** `3868ababe8ed0a7707a19aaf7fa5957c8aeeb675`
 **Current UI status:** `NOT_AVAILABLE`
 
 This checklist is intentionally split into **repository work** and **external release work**. A checkbox is not evidence by itself: every external item needs an attached log, screenshot, checksum, signature result or test record.
@@ -16,6 +16,8 @@ This checklist is intentionally split into **repository work** and **external re
 | [x] | `--version` and `--health-check` exist | Local command output in release report |
 | [x] | Pinned CPython 3.11 win_amd64 build dependencies | `requirements-windows.txt` with hashes |
 | [x] | Fail-closed build script exists | `installer/build-windows.ps1` |
+| [x] | Manual Windows-hosted CI workflow exists | `.github/workflows/windows-connector-build.yml` |
+| [x] | Unsigned CI output is explicitly test-only | `-AllowUnsignedTestBuild` and `manifest.json` gate |
 | [x] | Inno Setup install/upgrade/uninstall definition exists | `installer/PrinterAutoConnector.iss` |
 | [x] | Signature and SHA-256 verifier exists | `installer/verify-release.ps1` |
 | [x] | No-secret installer static test exists | `npm run test:installer` |
@@ -30,6 +32,8 @@ These cannot be completed truthfully in the current Linux sandbox.
 | Status | Required task | External requirement | Required evidence |
 |---|---|---|---|
 | [ ] | Build Windows executable | Clean Windows 10/11 x64 build host | PyInstaller log, version output, artifact path |
+| [ ] | Run GitHub Actions unsigned test build | GitHub Actions enabled for the selected branch | Green workflow run URL and downloaded `unsigned-test` artifact |
+| [ ] | Run GitHub Actions signed release-candidate build | Encrypted certificate secrets and security-owner approval | Green workflow run, `signed-candidate` artifact and verification output |
 | [ ] | Package installer | Inno Setup installed on build host | `.exe` installer and compiler log |
 | [ ] | Sign executable and installer | Organization-owned Authenticode certificate/private key | Signature verification output and certificate identity |
 | [ ] | Protect signing key | IT-controlled certificate store, HSM or non-exportable key | Key custody record; never commit key material |

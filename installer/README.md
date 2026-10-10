@@ -2,58 +2,58 @@
 
 ## Current status: NOT AVAILABLE
 
-This repository currently contains the connector source at `../connector/agent.py`, but it does **not** contain a compiled `.exe`, `.msi`, signed installer, release artifact or official installer download endpoint. A ZIP/source checkout is not an installer and must not be presented to Shopkeepers as one.
+This repository contains the connector source and a reproducible Windows build process, but it does **not** currently contain a public compiled installer, signed release, official download endpoint or physical-printer test evidence.
 
-The Shopkeeper wizard therefore reports `Signed Windows installer: not available` and does not provide a guessed download URL.
+The Shopkeeper wizard therefore keeps the download action disabled and shows **“Download PrinterAuto Connector — अभी उपलब्ध नहीं”**. A ZIP/source checkout and an unsigned CI artifact are not approved installers.
 
-## Required production build process
+## Easiest build path: GitHub Actions
 
-The release owner must complete these steps on a controlled Windows build host. The committed `PrinterAutoConnector.iss`, `build-windows.ps1` and `verify-release.ps1` files are build/release controls, not proof that an artifact has already been produced:
+`.github/workflows/windows-connector-build.yml` runs on GitHub’s `windows-2022` hosted runner. It uses CPython `3.11.9`, the pinned hashed packages in `requirements-windows.txt`, and Inno Setup `6.2.2`.
 
-1. Pin and review the Python/runtime dependencies. Run the repository security and connector tests.
-2. Build a Windows executable with a pinned PyInstaller version from a clean checkout, for example:
+From the repository’s GitHub page:
 
-   ```powershell
-   py -3.11 -m venv .venv
-   .\.venv\Scripts\python.exe -m pip install --require-hashes -r requirements-windows.txt
-   .\.venv\Scripts\python.exe -m PyInstaller --clean --onefile --name PrinterAutoConnector ..\connector\agent.py
-   ```
+1. Click **Actions**.
+2. Select **Windows Connector Build**.
+3. Click **Run workflow**.
+4. Select the feature branch to test.
+5. Enter a new semantic test version such as `0.0.0-test.1`.
+6. Leave signed mode unchecked for an unsigned test build.
+7. Open the completed run and download the artifact from **Artifacts**.
 
-3. Package the executable with a reviewed installer technology such as WiX or Inno Setup. The installer must:
-   - check Windows version and architecture;
-   - check the required runtime/dependencies;
-   - request administrator approval only when required;
-   - never silently install a printer driver or change system settings;
-   - install to a controlled directory and create a least-privilege service/start-menu entry only after explicit consent;
-   - include a clear uninstall path;
-   - preserve the connector token with restrictive permissions;
-   - provide a health-check action and safe log location without customer document contents.
+The resulting artifact is named `PrinterAutoConnector-<version>-unsigned-test`. It is a real Windows-built test artifact, but it is **not signed, not production eligible and must not be published or given to customers**.
 
-4. Sign the executable and installer with the organization’s code-signing certificate. Record the certificate identity, signing timestamp and SHA-256 digest.
-5. Verify the signature on a clean Windows 10 and Windows 11 machine, then run pairing, printer detection, heartbeat, test-print, offline and revoke tests.
-6. Publish the signed artifact to an authenticated release endpoint with immutable versioned URLs. Generate a server-maintained manifest containing version, URL, SHA-256 and signature status.
-7. Only after the above evidence exists should the Shopkeeper wizard change the installer status from `NOT_AVAILABLE` to `AVAILABLE`.
+A signed release candidate can be built only when the organization’s security owner configures the encrypted GitHub Actions secrets documented in [`WINDOWS_RELEASE_OPERATOR_GUIDE.md`](WINDOWS_RELEASE_OPERATOR_GUIDE.md). The signed workflow imports the certificate temporarily, signs and verifies the executable and installer, runs `verify-release.ps1`, and removes temporary certificate material. Private keys and passwords must never be committed or printed.
 
-## Build blockers
+A green GitHub Actions run is still not a public release. Clean Windows 10/11 install, upgrade, uninstall, pairing, shop-isolation, offline-recovery and real USB/network printer tests are still required.
 
-- Pinned `requirements-windows.txt` with exact wheel hashes is now committed for CPython 3.11 win_amd64; the controlled Windows build still must fetch and install it with `--require-hashes`.
-- No Windows/PyInstaller/Inno Setup build environment is available in this Linux sandbox.
-- No code-signing certificate or signing identity is configured in this task.
-- No official release bucket/CDN, update manifest or authenticated download endpoint is configured.
-- No physical Windows printer test host is available here.
+## Local/controlled Windows build process
 
-These are real blockers, not simulated test results. The source connector can still be inspected and syntax-tested, but it is not a signed Windows product installer.
+The release owner may run the fail-closed scripts on an approved Windows host:
 
+1. Install CPython 3.11 x64, Inno Setup and Windows SDK `signtool`.
+2. Run the repository tests.
+3. Run `installer/build-windows.ps1` with a new version and an organization-approved certificate thumbprint.
+4. Run `installer/verify-release.ps1` against the generated installer and manifest.
+5. Complete clean Windows and physical printer testing.
+6. Publish only the signed, independently verified artifact to an immutable HTTPS URL containing the version.
+7. Configure the server-side release manifest only after all evidence is reviewed.
 
-## What was verified in this Linux sandbox
+The build script supports `-AllowUnsignedTestBuild` only for local/CI test artifacts. It refuses to treat that output as production eligible. `verify-release.ps1` always requires `signtool` and a valid Authenticode signature.
 
-- Repository branch and base commit were verified before changes.
-- Python connector syntax and health/version code paths can be statically checked here.
-- Pinned dependency hashes, no-secret installer configuration, least-privilege settings, versioned upgrade name, uninstall definition and signature/checksum gates are covered by `npm run test:installer`.
-- A Windows executable, Authenticode signature, clean Windows installation/upgrade/uninstall, USB/network printer output and model support matrix were **not** produced or tested here.
+## Security controls
 
+- Python dependencies are pinned with exact wheel hashes and installed with `--require-hashes`.
+- Production builds require Authenticode signing and verification of both the frozen executable and installer.
+- The installer is per-user (`PrivilegesRequired=lowest`) and does not silently install printer drivers or change printer settings.
+- No API keys, service-role keys, shop credentials, payment secrets or permanent tokens are embedded.
+- The Shopkeeper download contract accepts only a verified HTTPS versioned URL with a recorded SHA-256 and signature status.
+- The UI remains `NOT_AVAILABLE` until the verified artifact is published and the required Windows/printer evidence exists.
 
-## Operator documents
+## Current blockers
 
-- [`WINDOWS_RELEASE_OPERATOR_GUIDE.md`](WINDOWS_RELEASE_OPERATOR_GUIDE.md) — step-by-step guide for the Windows release operator.
-- [`../WINDOWS_INSTALLER_RELEASE_CHECKLIST.md`](../WINDOWS_INSTALLER_RELEASE_CHECKLIST.md) — repository/external task split and final acceptance checklist.
+- No Windows build has actually run in this sandbox; the workflow is configured but not yet executed.
+- No organization signing certificate is configured in this task.
+- No official release bucket/CDN or authenticated download endpoint is configured.
+- No Windows 10/11 installation evidence or physical USB/network printer evidence is available.
+
+These are real blockers, not simulated results. See the [operator guide](WINDOWS_RELEASE_OPERATOR_GUIDE.md) and [release checklist](../WINDOWS_INSTALLER_RELEASE_CHECKLIST.md) for the exact next steps.

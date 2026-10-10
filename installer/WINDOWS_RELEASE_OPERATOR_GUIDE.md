@@ -69,7 +69,7 @@ git clone https://github.com/Shailendra76-sk/ludo.git PrinterAuto
 Set-Location .\PrinterAuto
 git fetch origin
 git checkout shopkeeper-printer-help-center-2026-10-09
-git reset --hard d7afea9eed73c1c8aeaabcc3652ed8f23fd9558b
+git reset --hard 3868ababe8ed0a7707a19aaf7fa5957c8aeeb675
 git status --short
 git rev-parse HEAD
 ```
@@ -77,7 +77,7 @@ git rev-parse HEAD
 Expected full commit:
 
 ```text
-d7afea9eed73c1c8aeaabcc3652ed8f23fd9558b
+3868ababe8ed0a7707a19aaf7fa5957c8aeeb675
 ```
 
 The working tree must be clean. Record the full Git SHA in the release evidence.
@@ -94,6 +94,48 @@ npm run test:all
 Stop if any command fails. Save the terminal output as `evidence\repository-tests.txt`.
 
 The repository test suite checks application security, connector syntax, payment/webhook handling, shop isolation, printer evidence, installer configuration and dependency vulnerabilities. It does **not** replace Windows installation or physical printer tests.
+
+## 4A. Easiest option: run the Windows build in GitHub Actions
+
+The repository includes `.github/workflows/windows-connector-build.yml`. GitHub provides the Windows build machine; you do not need to own a Windows computer just to create a test artifact.
+
+### Create an unsigned test installer
+
+1. Open the repository on GitHub.
+2. Click **Actions**.
+3. In the left column, click **Windows Connector Build**.
+4. Click **Run workflow**.
+5. Select the feature branch `shopkeeper-printer-help-center-2026-10-09` (or the reviewed branch you intend to test).
+6. Enter a new test version such as `0.0.0-test.1`.
+7. Leave **Sign and verify a release candidate** unchecked.
+8. Click the green **Run workflow** button.
+9. Open the new run, wait for the green checkmark, then open the run’s **Artifacts** section.
+10. Download the artifact named `PrinterAutoConnector-<version>-unsigned-test`.
+
+This produces a real Windows-built installer artifact, but it is **unsigned and test-only**. Do not publish it, do not enable the website download button, and do not install it on customer machines.
+
+### Create a signed release candidate
+
+Only the security/release owner should do this. Before using signed mode, an administrator must add these GitHub encrypted repository or organization secrets under **Settings → Secrets and variables → Actions**:
+
+- `PRINTERAUTO_SIGNING_CERTIFICATE_BASE64`: the organization-approved PFX certificate encoded as Base64.
+- `PRINTERAUTO_SIGNING_CERTIFICATE_PASSWORD`: the PFX password.
+
+The secrets are used only in memory on the hosted Windows runner. They must never be printed, committed, placed in an issue, or put into a workflow file. Prefer a hardware-backed or organization-managed signing service when available.
+
+Repeat the same **Actions → Windows Connector Build → Run workflow** steps, but check **Sign and verify a release candidate**. The workflow imports the certificate into the temporary runner certificate store, signs and verifies the executable and installer, runs `verify-release.ps1`, then removes the temporary certificate and PFX file.
+
+The artifact will be named `PrinterAutoConnector-<version>-signed-candidate`. It is still **not a public release**. It has not passed clean Windows installation, upgrade, uninstall, pairing, shop-isolation or physical-printer testing merely because the workflow is green.
+
+### If the Actions button is missing or fails
+
+- **Actions is disabled:** ask a repository administrator to enable Actions for the repository and allow the workflow.
+- **Workflow is not listed:** confirm the workflow file exists on the selected branch and that you opened the branch’s workflow page.
+- **Unsigned build fails:** open the failed step and record the error; do not bypass the pinned dependency or signing checks.
+- **Signed build says secrets are missing:** do not paste certificate material into chat or logs. Ask the repository administrator/security owner to configure the two encrypted secrets.
+- **Artifact download is unavailable:** the run must finish successfully before the artifact appears; a failed or cancelled run produces no approved artifact.
+
+The workflow uploads artifacts for 14 days. Download the artifact from GitHub and save it with its manifest and workflow run URL in the release evidence folder.
 
 ## 5. Build the signed installer
 

@@ -1,14 +1,14 @@
 # PrinterAuto Windows Connector — Release Readiness Report
 
-**Date:** 2026-10-09  
-**Repository:** `Shailendra76-sk/ludo`  
-**Branch:** `shopkeeper-printer-help-center-2026-10-09`  
-**Base commit verified before this work:** `7da38572790a842911b5c474719fe5ee771ef5b5`  
+**Date:** 2026-10-10
+**Repository:** `Shailendra76-sk/ludo`
+**Branch:** `shopkeeper-printer-help-center-2026-10-09`
+**Latest feature commit before this work:** `3868ababe8ed0a7707a19aaf7fa5957c8aeeb675`
 **Main merge:** Not performed
 
 ## Executive result
 
-A real signed Windows installer was **not produced** in this environment. The repository now contains a pinned, fail-closed Windows build and verification process, but this Linux sandbox has no Windows build host, Inno Setup compiler, Authenticode `signtool`, code-signing certificate, Windows VM, or physical USB/network printer.
+A real signed Windows installer was **not produced** in this environment. The repository now contains a pinned, fail-closed Windows build and verification process plus a manually triggered GitHub Actions workflow for a `windows-2022` hosted runner. The workflow has been configured but has **not run** in this task. This Linux sandbox has no Windows build host, Inno Setup compiler, Authenticode `signtool`, code-signing certificate, Windows VM, or physical USB/network printer.
 
 The customer-facing installer status must remain:
 
@@ -28,7 +28,9 @@ No `.exe`, `.msi`, official download URL, signature, checksum manifest, or model
 - `requirements-windows.txt` pins the CPython 3.11 win_amd64 build dependencies with exact SHA-256 wheel hashes.
 - `installer/build-windows.ps1`:
   - requires the pinned requirements file;
-  - requires Python 3.11, Inno Setup and Windows SDK `signtool`;
+  - requires Python 3.11 and Inno Setup;
+  - requires Windows SDK `signtool` and a certificate thumbprint for signed builds;
+  - supports an explicitly labeled unsigned test build only with `-AllowUnsignedTestBuild`;
   - builds the connector with PyInstaller;
   - embeds the requested version in the frozen bundle;
   - signs and verifies the executable;
@@ -43,6 +45,7 @@ No `.exe`, `.msi`, official download URL, signature, checksum manifest, or model
   - provides an uninstall entry;
   - does not embed API keys, service-role keys, shop credentials or payment secrets.
 - `installer/verify-release.ps1` verifies the published artifact’s SHA-256 and Authenticode signature.
+- `.github/workflows/windows-connector-build.yml` provides a manual Windows-hosted build, uploads a 14-day test artifact, and never publishes directly to a public endpoint.
 - Connector first-run pairing remains one-time, shop-bound and token-based. Missing pairing produces a clear error.
 - Connector now supports `--version` and `--health-check` without requiring backend credentials.
 - Windows token permissions are hardened with `icacls`; failure to lock the token fails closed.
@@ -55,6 +58,7 @@ No `.exe`, `.msi`, official download URL, signature, checksum manifest, or model
 | Compiled Windows executable | **Not produced** |
 | Windows installer `.exe`/`.msi` | **Not produced** |
 | Artifact location | **None** |
+| GitHub Actions Windows build | **Configured but not run** |
 | Authenticode signature | **Not performed — `signtool` unavailable** |
 | Code-signing certificate | **Unavailable/not configured** |
 | SHA-256 of released installer | **Not generated because no installer exists** |
@@ -150,6 +154,8 @@ These require a controlled Windows environment and real hardware; they remain **
 - Unauthorized shop isolation using two real connector installations
 - Driver installation across printer models
 - Model compatibility/support matrix
+- GitHub Actions unsigned test artifact build
+- GitHub Actions signed release-candidate build
 
 No printer model is claimed as tested or supported by this report.
 
