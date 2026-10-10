@@ -10,6 +10,24 @@ import argparse, json, os, platform, subprocess, sys, time, urllib.request, urll
 from pathlib import Path
 
 CONFIG = Path.home() / '.printer-auto-connector.json'
+VERSION_FILE = Path(sys.executable).with_name('version.txt') if getattr(sys, 'frozen', False) else Path(__file__).with_name('VERSION')
+CONNECTOR_VERSION = os.environ.get('PRINTERAUTO_CONNECTOR_VERSION') or (VERSION_FILE.read_text().strip() if VERSION_FILE.exists() else '0.0.0-dev')
+
+def secure_config_file():
+    try:
+        os.chmod(CONFIG, 0o600)
+    except OSError:
+        pass
+    if platform.system() == 'Windows' and CONFIG.exists():
+        try:
+            identity = subprocess.check_output(['whoami'], text=True, timeout=5).strip()
+            subprocess.run(['icacls', str(CONFIG), '/inheritance:r', '/grant:r', f'{identity}:F'], check=True, capture_output=True, timeout=10)
+        except Exception:
+            raise SystemExit('Could not lock connector token permissions on Windows; refusing to continue.')
+
+def local_health():
+    names = detect_printers()
+    return {'version': CONNECTOR_VERSION, 'platform': platform.platform(), 'printerCount': len(names), 'printers': names, 'driverChecks': {name: windows_driver_installed(name) for name in names}}
 
 def request(url, method='GET', body=None, token=None):
     data = json.dumps(body).encode() if body is not None else None
@@ -23,38 +41,57 @@ def detect_printers():
     try: return [x.split(' ')[1] for x in subprocess.check_output(['lpstat','-p'], text=True).splitlines() if x.startswith('printer ')]
     except Exception: return []
 
+def windows_driver_installed(printer):
+    if platform.system() != 'Windows' or not printer:
+        return None
+    try:
+        safe_name = printer.replace("'", "''")
+        cmd = ['powershell', '-NoProfile', '-Command', f"(Get-Printer -Name '{safe_name}').DriverName"]
+        return bool(subprocess.check_output(cmd, text=True, timeout=10).strip())
+    except Exception:
+        return False
+
 def download_job(base, token, job):
     req = urllib.request.Request(base + '/api/connector/jobs/' + job['id'] + '/file', headers={'Authorization': f'Bearer {token}'})
     with urllib.request.urlopen(req, timeout=60) as r:
         tmp = Path('/tmp') / ('printer-auto-' + job['id'] + '.bin'); tmp.write_bytes(r.read()); return str(tmp)
 
 def print_file(printer, file_ref, copies, test=False):
-    # Production deployments should resolve file_ref through a mutually-authenticated private
-    # file channel. This agent intentionally does not accept public URLs or arbitrary paths.
-    if test:
-        return True
-    local = Path(file_ref)
-    if not local.is_file() or local.is_symlink(): return False
-    if platform.system() == 'Windows': return False
+    """Print locally and return evidence; never claim success from a browser assertion."""
+    evidence = {'printerName': printer, 'verifiedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'exitCode': 1, 'localJobId': f'{platform.node()}-{int(time.time()*1000)}'}
+    if not printer or not file_ref or not Path(file_ref).is_file() or Path(file_ref).is_symlink():
+        evidence['error'] = 'Local printer or private job file unavailable.'
+        return {'ok': False, 'evidence': evidence}
     try:
-        subprocess.run(['lp','-d',printer,'-n',str(max(1, int(copies))),str(local)], check=True, timeout=120, capture_output=True)
-        return True
-    except Exception: return False
+        if platform.system() == 'Windows':
+            ps = "Start-Process -FilePath $args[0] -Verb PrintTo -ArgumentList $args[1] -PassThru | Out-Null; Start-Sleep -Seconds 2"
+            subprocess.run(['powershell', '-NoProfile', '-NonInteractive', '-Command', ps, str(file_ref), printer], check=True, timeout=120, capture_output=True)
+        else:
+            subprocess.run(['lp', '-d', printer, '-n', str(max(1, int(copies))), str(file_ref)], check=True, timeout=120, capture_output=True)
+        evidence['exitCode'] = 0
+        return {'ok': True, 'evidence': evidence}
+    except Exception as exc:
+        evidence['error'] = 'Local print command failed.'
+        return {'ok': False, 'evidence': evidence}
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('--backend', required=True); ap.add_argument('--pairing-id'); ap.add_argument('--code'); ap.add_argument('--device-name', default=f'Printer Auto Connector ({platform.node()})'); ap.add_argument('--interval', type=int, default=5); ap.add_argument('--test', action='store_true'); args=ap.parse_args(); base=args.backend.rstrip('/')
+    ap=argparse.ArgumentParser(); ap.add_argument('--backend'); ap.add_argument('--pairing-id'); ap.add_argument('--code'); ap.add_argument('--device-name', default=f'Printer Auto Connector ({platform.node()})'); ap.add_argument('--interval', type=int, default=5); ap.add_argument('--test', action='store_true'); ap.add_argument('--version', action='store_true'); ap.add_argument('--health-check', action='store_true'); args=ap.parse_args()
+    if args.version: print(CONNECTOR_VERSION); return
+    if args.health_check: print(json.dumps(local_health(), indent=2)); return
+    if not args.backend: ap.error('--backend is required unless --version or --health-check is used')
+    base=args.backend.rstrip('/')
     if args.pairing_id and args.code:
-        d=request(base+'/api/connector/register','POST',{'pairingId':args.pairing_id,'code':args.code,'deviceName':args.device_name}); CONFIG.write_text(json.dumps(d)); os.chmod(CONFIG,0o600); print(f"Registered for shop {d['shopId']}")
-    if not CONFIG.exists(): raise SystemExit('Pair the connector first with --pairing-id and --code')
+        d=request(base+'/api/connector/register','POST',{'pairingId':args.pairing_id,'code':args.code,'deviceName':args.device_name}); tmp=CONFIG.with_suffix('.tmp'); tmp.write_text(json.dumps(d)); tmp.replace(CONFIG); secure_config_file(); print(f"Registered for shop {d['shopId']}")
+    if not CONFIG.exists(): raise SystemExit('First run requires a one-time shop pairing: use --pairing-id and --code from Shopkeeper > Printer Management.')
+    secure_config_file()
     cfg=json.loads(CONFIG.read_text()); token=cfg['token']; names=detect_printers(); printer=names[0] if names else ''
     print('Detected printers:', ', '.join(names) or 'none')
-    if args.test and printer: print('Test print:', 'sent' if print_file(printer,'',1,True) else 'failed')
     while True:
         try:
-            request(base+'/api/connector/heartbeat','POST',{'status':'ONLINE' if printer else 'OFFLINE','printerName':printer},token)
+            request(base+'/api/connector/heartbeat','POST',{'status':'ONLINE' if printer else 'OFFLINE','printerName':printer,'driverInstalled':windows_driver_installed(printer),'windowsVersion':platform.version() if platform.system() == 'Windows' else None,'error':None if printer else 'No local printer detected.'},token)
             for job in request(base+'/api/connector/jobs',token=token).get('jobs',[]):
-                local_file = download_job(base, token, job) if printer else ''; ok=bool(printer) and print_file(printer, local_file, job.get('copies',1)); Path(local_file).unlink(missing_ok=True)
-                request(base+'/api/connector/jobs/'+job['id']+'/complete','POST',{'status':'PRINTED' if ok else 'PRINT_FAILED'},token)
+                local_file = download_job(base, token, job) if printer else ''; result = print_file(printer, local_file, job.get('copies',1), bool(job.get('test'))) if printer else {'ok': False, 'evidence': {'printerName': '', 'verifiedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'exitCode': 1, 'localJobId': f'{platform.node()}-{int(time.time()*1000)}', 'error': 'No local printer detected.'}}; Path(local_file).unlink(missing_ok=True) if local_file else None
+                request(base+'/api/connector/jobs/'+job['id']+'/complete','POST',{'result':'PRINTED' if result['ok'] else 'PRINT_FAILED','completionToken':job.get('completionToken',''),'evidence':result['evidence']},token)
             time.sleep(max(2,args.interval))
         except (urllib.error.URLError, OSError, ValueError) as e:
             print('Connector temporarily offline:', e, file=sys.stderr); time.sleep(max(5,args.interval))

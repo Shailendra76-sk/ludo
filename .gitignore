@@ -4,5 +4,7 @@ storage/tmp/*
 storage/phase2-data.json
 storage/phase3-data.json
 storage/phase4-data.json
+__pycache__/
+.pytest_cache/
 .env
 .DS_Store

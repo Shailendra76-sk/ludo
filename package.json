@@ -3,9 +3,19 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "node --check server.js && node --check phase3.js && node --check phase4.js && node --check public/app.js && node --check public/shopkeeper.js && node --check public/superadmin.js && python3 -m py_compile connector/agent.py",
+    "test": "node --check server.js && node --check phase3.js && node --check phase4.js && node --check control-center.js && node --check production-readiness.js && node --check system-configuration.js && node --check shopkeeper-printer-help.js && node --check public/app.js && node --check public/shopkeeper.js && node --check public/superadmin.js && python3 -m py_compile connector/agent.py",
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "security:audit": "node security-audit.test.js && node security-audit.phase4.test.js && node security-audit.state.test.js",
+    "security:deps": "npm audit --audit-level=high",
+    "test:control-center": "node control-center.test.js",
+    "test:all": "npm test && npm run test:production-readiness && npm run test:system-config && npm run security:audit && npm run security:deps && npm run test:control-center && npm run test:shopkeeper-printer && npm run test:installer",
+    "test:production-readiness": "node production-readiness.test.js",
+    "staging:verify": "node staging-readiness.test.js",
+    "staging:verify:required": "node staging-readiness.test.js --require-staging",
+    "test:system-config": "node system-configuration.test.js",
+    "test:shopkeeper-printer": "node shopkeeper-printer-help.test.js",
+    "test:installer": "node installer/installer-config.test.js"
   },
   "keywords": [],
   "author": "",
