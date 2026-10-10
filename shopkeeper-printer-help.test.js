@@ -17,14 +17,14 @@ async function req(url, options = {}) { const h = new Headers(options.headers ||
 async function ready() { for (let i = 0; i < 60; i++) { try { if ((await fetch(base + '/api/shops/demo-shop')).status === 200) return; } catch {} await new Promise(r => setTimeout(r, 100)); } throw Error('server not ready'); }
 (async () => { try {
   await ready();
-  let guideResponse = await fetch(base + '/shopkeeper/setup-guide'); assert.strictEqual(guideResponse.status, 200); const guideText = await guideResponse.text(); assert.ok(guideText.includes('NOT AVAILABLE'));
+  let guideResponse = await fetch(base + '/shopkeeper/setup-guide'); assert.strictEqual(guideResponse.status, 200); const guideText = await guideResponse.text(); assert.ok(guideText.includes('NOT AVAILABLE')); const shopkeeperUi = fs.readFileSync(path.join(__dirname, 'public/shopkeeper.js'), 'utf8'); assert.ok(shopkeeperUi.includes('Download PrinterAuto Connector — अभी उपलब्ध नहीं'));
   let r = await req('/api/shopkeeper/help'); assert.strictEqual(r.status, 401);
   r = await req('/api/shopkeeper/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ identifier: env.BOOTSTRAP_SHOPKEEPER_IDENTIFIER, password: env.BOOTSTRAP_SHOPKEEPER_PASSWORD }) }); assert.strictEqual(r.status, 200);
   const headers = { 'x-csrf-token': csrf(), 'content-type': 'application/json' };
   r = await req('/api/shopkeeper/help'); assert.strictEqual(r.status, 200); assert.ok(r.body.guides.length >= 5);
   r = await req('/api/shopkeeper/help?q=Windows'); assert.strictEqual(r.status, 200); assert.ok(r.body.guides.some(x => x.id === 'windows-install'));
   r = await req('/api/shopkeeper/help/ask', { method: 'POST', headers, body: JSON.stringify({ question: 'Why is the connector offline?' }) }); assert.strictEqual(r.status, 404);
-  r = await req('/api/shopkeeper/printer-setup'); assert.strictEqual(r.status, 200); assert.strictEqual(r.body.installer.status, 'NOT_AVAILABLE'); assert.strictEqual(r.body.installer.downloadUrl, null); assert.ok(r.body.officialSupportLinks.some(x => x.brand === 'Windows built-in setup'));
+  r = await req('/api/shopkeeper/printer-setup'); assert.strictEqual(r.status, 200); assert.strictEqual(r.body.installer.status, 'NOT_AVAILABLE'); assert.strictEqual(r.body.installer.downloadUrl, null); assert.strictEqual(r.body.installer.downloadEnabled, false); assert.strictEqual(r.body.installer.labelHi, 'अभी उपलब्ध नहीं'); assert.ok(r.body.officialSupportLinks.some(x => x.brand === 'Windows built-in setup'));
   r = await req('/api/shopkeeper/connectors/pair', { method: 'POST', headers, body: '{}' }); assert.strictEqual(r.status, 200); const pair = r.body;
   r = await req('/api/connector/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pairingId: pair.pairingId, code: pair.code, deviceName: 'test-windows-connector' }) }); assert.strictEqual(r.status, 200); const connectorToken = r.body.token; const connectorId = r.body.connectorId;
   const connectorHeaders = { authorization: `Bearer ${connectorToken}`, 'content-type': 'application/json' };
